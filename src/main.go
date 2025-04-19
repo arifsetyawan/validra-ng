@@ -10,16 +10,15 @@ import (
 	"time"
 
 	"github.com/arifsetyawan/validra/src/config"
-	"github.com/arifsetyawan/validra/src/internal/delivery/http/handler"
 	"github.com/arifsetyawan/validra/src/internal/delivery/http/middleware"
 	"github.com/arifsetyawan/validra/src/internal/domain"
 	"github.com/arifsetyawan/validra/src/internal/repository"
+	"github.com/arifsetyawan/validra/src/internal/router"
 	"github.com/arifsetyawan/validra/src/internal/service"
 	"github.com/arifsetyawan/validra/src/pkg/database"
 	"github.com/arifsetyawan/validra/src/pkg/logger"
 	"github.com/arifsetyawan/validra/src/pkg/validator"
 	"github.com/labstack/echo/v4"
-	echoSwagger "github.com/swaggo/echo-swagger"
 
 	// Import generated docs
 	_ "github.com/arifsetyawan/validra/docs"
@@ -47,6 +46,7 @@ func main() {
 	log.Info("Configuration loaded")
 	// Initialize database based on type
 	var resourceRepo domain.ResourceRepository
+	var userRepo domain.UserRepository
 
 	if cfg.Database.Type == "postgres" {
 		// Initialize PostgreSQL with GORM
@@ -58,6 +58,7 @@ func main() {
 			cfg.Database.Port,
 			cfg.Database.SSLMode,
 		)
+
 		if err != nil {
 			log.Error("Failed to connect to PostgreSQL database: %v", err)
 			os.Exit(1)
@@ -71,8 +72,9 @@ func main() {
 		}
 		log.Info("PostgreSQL database migrations completed")
 
-		// Initialize repository with GORM
+		// Initialize repositories with GORM
 		resourceRepo = repository.NewGormResourceRepository(db)
+		userRepo = repository.NewGormUserRepository(db)
 
 	} else {
 		// Initialize SQLite (for backwards compatibility)
@@ -90,8 +92,9 @@ func main() {
 		}
 		log.Info("SQLite database migrations completed")
 
-		// Initialize repository with SQLite
+		// Initialize repositories with SQLite
 		resourceRepo = repository.NewSQLiteResourceRepository(db)
+		userRepo = repository.NewSQLiteUserRepository(db)
 	}
 
 	// Initialize Echo
@@ -103,29 +106,13 @@ func main() {
 
 	// Initialize services
 	resourceService := service.NewResourceService(resourceRepo)
-
-	// Initialize handlers
-	resourceHandler := handler.NewResourceHandler(resourceService)
+	userService := service.NewUserService(userRepo)
 
 	// Register routes
-	resourceHandler.Register(e)
-
-	// Health check endpoint
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{
-			"status": "ok",
-			"time":   time.Now().Format(time.RFC3339),
-		})
-	})
+	router.Register(e, resourceService, userService)
+	log.Info("Routes registered")
 
 	// Setup Swagger
-	e.GET("/docs", func(c echo.Context) error {
-		return c.Redirect(http.StatusMovedPermanently, "/docs/index.html")
-	})
-	e.GET("/docs/", func(c echo.Context) error {
-		return c.Redirect(http.StatusMovedPermanently, "/docs/index.html")
-	})
-	e.GET("/docs/*", echoSwagger.WrapHandler)
 	log.Info("Swagger documentation available at /docs")
 
 	// Start server
@@ -147,18 +134,17 @@ func main() {
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
-
-	log.Info("Server shutting down...")
+	log.Info("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := e.Shutdown(ctx); err != nil {
-		log.Error("Server forced to shutdown: %v", err)
+		log.Error("Server shutdown error: %v", err)
 		os.Exit(1)
 	}
 
-	log.Info("Server stopped gracefully")
+	log.Info("Server shutdown complete")
 }
