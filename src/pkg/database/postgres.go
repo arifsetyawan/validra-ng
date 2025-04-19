@@ -88,11 +88,12 @@ func (p *PostgresDB) Migrate() error {
 	}
 
 	type User struct {
-		ID        string `gorm:"primaryKey"`
-		Username  string `gorm:"not null;uniqueIndex"`
-		Email     string `gorm:"uniqueIndex"`
-		CreatedAt time.Time
-		UpdatedAt time.Time
+		ID         string `gorm:"primaryKey"`
+		Username   string `gorm:"not null;uniqueIndex"`
+		Attributes []byte
+		Email      string `gorm:"uniqueIndex"`
+		CreatedAt  time.Time
+		UpdatedAt  time.Time
 	}
 
 	// Run migrations

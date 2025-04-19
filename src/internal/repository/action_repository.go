@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -11,21 +10,59 @@ import (
 	"github.com/google/uuid"
 )
 
-// SQLiteActionRepository implements domain.ActionRepository using SQLite
-type SQLiteActionRepository struct {
-	db *database.SQLiteDB
+// GormActionRepository implements domain.ActionRepository using GORM with PostgreSQL
+type ActionRepository struct {
+	db *database.PostgresDB
 }
 
-// NewSQLiteActionRepository creates a new SQLite repository for actions
-func NewSQLiteActionRepository(db *database.SQLiteDB) domain.ActionRepository {
-	return &SQLiteActionRepository{
+// NewActionRepository creates a new GORM repository for actions
+func NewActionRepository(db *database.PostgresDB) domain.ActionRepository {
+	return &ActionRepository{
 		db: db,
 	}
 }
 
+// Action is the GORM model for actions
+type Action struct {
+	ID          string `gorm:"primaryKey"`
+	ResourceID  string `gorm:"not null;index"`
+	Name        string `gorm:"not null"`
+	Description string
+	Attributes  []byte
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time `gorm:"index"`
+}
+
+// toDomain converts a GORM model to a domain model
+func (a *Action) toDomain() *domain.Action {
+	return &domain.Action{
+		ID:          a.ID,
+		ResourceID:  a.ResourceID,
+		Name:        a.Name,
+		Description: a.Description,
+		Attributes:  a.Attributes,
+		CreatedAt:   a.CreatedAt,
+		UpdatedAt:   a.UpdatedAt,
+	}
+}
+
+// fromDomain converts a domain model to a GORM model
+func actionFromDomain(a *domain.Action) *Action {
+	return &Action{
+		ID:          a.ID,
+		ResourceID:  a.ResourceID,
+		Name:        a.Name,
+		Description: a.Description,
+		Attributes:  a.Attributes,
+		CreatedAt:   a.CreatedAt,
+		UpdatedAt:   a.UpdatedAt,
+	}
+}
+
 // Create inserts a new action into the database
-func (r *SQLiteActionRepository) Create(ctx context.Context, action *domain.Action) error {
-	// Generate a new UUID if ID is not provided
+func (r *ActionRepository) Create(ctx context.Context, action *domain.Action) error {
+	// Generate a new UUID if not provided
 	if action.ID == "" {
 		action.ID = uuid.New().String()
 	}
@@ -34,193 +71,97 @@ func (r *SQLiteActionRepository) Create(ctx context.Context, action *domain.Acti
 	action.CreatedAt = now
 	action.UpdatedAt = now
 
-	query := `
-		INSERT INTO actions (id, resource_id, name, description, attributes, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
-	`
-
-	_, err := r.db.DB.ExecContext(
-		ctx,
-		query,
-		action.ID,
-		action.ResourceID,
-		action.Name,
-		action.Description,
-		action.Attributes,
-		action.CreatedAt,
-		action.UpdatedAt,
-	)
-
-	if err != nil {
-		return fmt.Errorf("failed to create action: %w", err)
+	gormAction := actionFromDomain(action)
+	result := r.db.DB.WithContext(ctx).Create(gormAction)
+	if result.Error != nil {
+		return fmt.Errorf("failed to create action: %w", result.Error)
 	}
 
 	return nil
 }
 
 // GetByID retrieves an action by ID
-func (r *SQLiteActionRepository) GetByID(ctx context.Context, id string) (*domain.Action, error) {
-	query := `
-		SELECT id, resource_id, name, description, attributes, created_at, updated_at
-		FROM actions
-		WHERE id = ?
-	`
-
-	var action domain.Action
-	err := r.db.DB.QueryRowContext(ctx, query, id).Scan(
-		&action.ID,
-		&action.ResourceID,
-		&action.Name,
-		&action.Description,
-		&action.Attributes,
-		&action.CreatedAt,
-		&action.UpdatedAt,
-	)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("action not found")
-		}
-		return nil, fmt.Errorf("failed to get action: %w", err)
+func (r *ActionRepository) GetByID(ctx context.Context, id string) (*domain.Action, error) {
+	var action Action
+	result := r.db.DB.WithContext(ctx).First(&action, "id = ?", id)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get action: %w", result.Error)
 	}
 
-	return &action, nil
+	return action.toDomain(), nil
 }
 
 // GetByResourceID retrieves actions by resource ID
-func (r *SQLiteActionRepository) GetByResourceID(ctx context.Context, resourceID string) ([]*domain.Action, error) {
-	query := `
-		SELECT id, resource_id, name, description, attributes, created_at, updated_at
-		FROM actions
-		WHERE resource_id = ?
-		ORDER BY created_at DESC
-	`
-
-	rows, err := r.db.DB.QueryContext(ctx, query, resourceID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get actions: %w", err)
-	}
-	defer rows.Close()
-
-	var actions []*domain.Action
-	for rows.Next() {
-		var action domain.Action
-		err := rows.Scan(
-			&action.ID,
-			&action.ResourceID,
-			&action.Name,
-			&action.Description,
-			&action.Attributes,
-			&action.CreatedAt,
-			&action.UpdatedAt,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan action: %w", err)
-		}
-		actions = append(actions, &action)
+func (r *ActionRepository) GetByResourceID(ctx context.Context, resourceID string) ([]*domain.Action, error) {
+	var actions []Action
+	result := r.db.DB.WithContext(ctx).Where("resource_id = ?", resourceID).Find(&actions)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get actions: %w", result.Error)
 	}
 
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error in rows: %w", err)
+	domainActions := make([]*domain.Action, len(actions))
+	for i, action := range actions {
+		domainActions[i] = action.toDomain()
 	}
 
-	return actions, nil
+	return domainActions, nil
 }
 
 // List retrieves a paginated list of actions
-func (r *SQLiteActionRepository) List(ctx context.Context, limit, offset int) ([]*domain.Action, error) {
-	query := `
-		SELECT id, resource_id, name, description, attributes, created_at, updated_at
-		FROM actions
-		ORDER BY created_at DESC
-		LIMIT ? OFFSET ?
-	`
-
-	rows, err := r.db.DB.QueryContext(ctx, query, limit, offset)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list actions: %w", err)
-	}
-	defer rows.Close()
-
-	var actions []*domain.Action
-	for rows.Next() {
-		var action domain.Action
-		err := rows.Scan(
-			&action.ID,
-			&action.ResourceID,
-			&action.Name,
-			&action.Description,
-			&action.Attributes,
-			&action.CreatedAt,
-			&action.UpdatedAt,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan action: %w", err)
-		}
-		actions = append(actions, &action)
+func (r *ActionRepository) List(ctx context.Context, limit, offset int) ([]*domain.Action, error) {
+	var actions []Action
+	result := r.db.DB.WithContext(ctx).Limit(limit).Offset(offset).Find(&actions)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to list actions: %w", result.Error)
 	}
 
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error in rows: %w", err)
+	domainActions := make([]*domain.Action, len(actions))
+	for i, action := range actions {
+		domainActions[i] = action.toDomain()
 	}
 
-	return actions, nil
+	return domainActions, nil
 }
 
-// Update updates an existing action
-func (r *SQLiteActionRepository) Update(ctx context.Context, action *domain.Action) error {
+// Update updates an action in the database
+func (r *ActionRepository) Update(ctx context.Context, action *domain.Action) error {
 	action.UpdatedAt = time.Now()
 
-	query := `
-		UPDATE actions
-		SET resource_id = ?, name = ?, description = ?, attributes = ?, updated_at = ?
-		WHERE id = ?
-	`
-
-	result, err := r.db.DB.ExecContext(
-		ctx,
-		query,
-		action.ResourceID,
-		action.Name,
-		action.Description,
-		action.Attributes,
-		action.UpdatedAt,
-		action.ID,
-	)
-
-	if err != nil {
-		return fmt.Errorf("failed to update action: %w", err)
+	gormAction := actionFromDomain(action)
+	result := r.db.DB.WithContext(ctx).Save(gormAction)
+	if result.Error != nil {
+		return fmt.Errorf("failed to update action: %w", result.Error)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
+	if result.RowsAffected == 0 {
 		return fmt.Errorf("action not found")
 	}
 
 	return nil
 }
 
-// Delete deletes an action by ID
-func (r *SQLiteActionRepository) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM actions WHERE id = ?`
-
-	result, err := r.db.DB.ExecContext(ctx, query, id)
-	if err != nil {
-		return fmt.Errorf("failed to delete action: %w", err)
+// Delete removes an action from the database
+func (r *ActionRepository) Delete(ctx context.Context, id string) (*domain.Action, error) {
+	// First retrieve the action to return it after deletion
+	var action Action
+	getResult := r.db.DB.WithContext(ctx).First(&action, "id = ?", id)
+	if getResult.Error != nil {
+		return nil, fmt.Errorf("failed to get resource: %w", getResult.Error)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+	// Perform soft delete
+	now := time.Now()
+	result := r.db.DB.WithContext(ctx).Model(&Action{}).Where("id = ?", id).Update("deleted_at", now)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to soft delete action: %w", result.Error)
 	}
 
-	if rowsAffected == 0 {
-		return fmt.Errorf("action not found")
+	if result.RowsAffected == 0 {
+		return nil, fmt.Errorf("action not found")
 	}
 
-	return nil
+	// Update the retrieved action with deletion time
+	action.DeletedAt = &now
+
+	return action.toDomain(), nil
 }

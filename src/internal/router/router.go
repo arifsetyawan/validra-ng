@@ -12,8 +12,16 @@ import (
 
 // Register registers all routes and handlers to the echo instance
 func Register(e *echo.Echo, resourceService *service.ResourceService, userService *service.UserService, roleService *service.RoleService, actionService *service.ActionService) {
+	// Create permission service
+	permissionService := service.NewPermissionService(
+		userService.UserRepository(),
+		actionService.ActionRepository(),
+		resourceService.ResourceRepository(),
+		roleService.RoleRepository(),
+	)
+
 	// API routes
-	registerAPIRoutes(e, resourceService, userService, roleService, actionService)
+	registerAPIRoutes(e, resourceService, userService, roleService, actionService, permissionService)
 
 	// Health check endpoint
 	e.GET("/health", func(c echo.Context) error {
@@ -28,18 +36,20 @@ func Register(e *echo.Echo, resourceService *service.ResourceService, userServic
 }
 
 // registerAPIRoutes sets up all API-related routes
-func registerAPIRoutes(e *echo.Echo, resourceService *service.ResourceService, userService *service.UserService, roleService *service.RoleService, actionService *service.ActionService) {
+func registerAPIRoutes(e *echo.Echo, resourceService *service.ResourceService, userService *service.UserService, roleService *service.RoleService, actionService *service.ActionService, permissionService *service.PermissionService) {
 	// Initialize handlers
 	resourceHandler := handler.NewResourceHandler(resourceService)
 	userHandler := handler.NewUserHandler(userService)
 	roleHandler := handler.NewRoleHandler(roleService)
 	actionHandler := handler.NewActionHandler(actionService)
+	permissionHandler := handler.NewPermissionHandler(permissionService)
 
 	// Register routes for each handler
 	resourceHandler.Register(e)
 	userHandler.Register(e)
 	roleHandler.Register(e)
 	actionHandler.Register(e)
+	permissionHandler.Register(e)
 }
 
 // registerSwaggerRoutes sets up Swagger documentation routes

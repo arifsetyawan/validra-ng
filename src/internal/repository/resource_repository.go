@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -11,20 +10,66 @@ import (
 	"github.com/google/uuid"
 )
 
-// SQLiteResourceRepository implements domain.ResourceRepository using SQLite
-type SQLiteResourceRepository struct {
-	db *database.SQLiteDB
+// GormResourceRepository implements domain.ResourceRepository using GORM with PostgreSQL
+type ResourceRepository struct {
+	db *database.PostgresDB
 }
 
-// NewSQLiteResourceRepository creates a new SQLite repository for resources
-func NewSQLiteResourceRepository(db *database.SQLiteDB) domain.ResourceRepository {
-	return &SQLiteResourceRepository{
+// ResourceRepository defines the methods for Resource data access
+type ResourceRepositoryInterface interface {
+	Create(ctx context.Context, resource *domain.Resource) error
+	GetByID(ctx context.Context, id string) (*domain.Resource, error)
+	List(ctx context.Context, limit, offset int) ([]*domain.Resource, error)
+	Update(ctx context.Context, resource *domain.Resource) error
+	Delete(ctx context.Context, id string) (*domain.Resource, error)
+}
+
+// NewGormResourceRepository creates a new GORM repository for resources
+func NewResourceRepository(db *database.PostgresDB) ResourceRepositoryInterface {
+	return &ResourceRepository{
 		db: db,
 	}
 }
 
+// Resource is the GORM model for resources
+type Resource struct {
+	ID          string `json:"id" gorm:"primaryKey"`
+	Name        string `json:"name" gorm:"not null"`
+	Description string
+	Attributes  []byte
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time `gorm:"index"`
+}
+
+// toDomain converts a GORM model to a domain model
+func (r *Resource) toDomain() *domain.Resource {
+	return &domain.Resource{
+		ID:          r.ID,
+		Name:        r.Name,
+		Description: r.Description,
+		Attributes:  r.Attributes,
+		CreatedAt:   r.CreatedAt,
+		UpdatedAt:   r.UpdatedAt,
+		DeletedAt:   r.DeletedAt,
+	}
+}
+
+// fromDomain converts a domain model to a GORM model
+func fromDomain(r *domain.Resource) *Resource {
+	return &Resource{
+		ID:          r.ID,
+		Name:        r.Name,
+		Description: r.Description,
+		Attributes:  r.Attributes,
+		CreatedAt:   r.CreatedAt,
+		UpdatedAt:   r.UpdatedAt,
+		DeletedAt:   r.DeletedAt,
+	}
+}
+
 // Create inserts a new resource into the database
-func (r *SQLiteResourceRepository) Create(ctx context.Context, resource *domain.Resource) error {
+func (r *ResourceRepository) Create(ctx context.Context, resource *domain.Resource) error {
 	// Generate a new UUID if ID is not provided
 	if resource.ID == "" {
 		resource.ID = uuid.New().String()
@@ -34,149 +79,81 @@ func (r *SQLiteResourceRepository) Create(ctx context.Context, resource *domain.
 	resource.CreatedAt = now
 	resource.UpdatedAt = now
 
-	query := `
-		INSERT INTO resources (id, name, description, attributes, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?)
-	`
-
-	_, err := r.db.DB.ExecContext(
-		ctx,
-		query,
-		resource.ID,
-		resource.Name,
-		resource.Description,
-		resource.Attributes,
-		resource.CreatedAt,
-		resource.UpdatedAt,
-	)
-
-	if err != nil {
-		return fmt.Errorf("failed to create resource: %w", err)
+	gormResource := fromDomain(resource)
+	result := r.db.DB.WithContext(ctx).Create(gormResource)
+	if result.Error != nil {
+		return fmt.Errorf("failed to create resource: %w", result.Error)
 	}
 
 	return nil
 }
 
 // GetByID retrieves a resource by ID
-func (r *SQLiteResourceRepository) GetByID(ctx context.Context, id string) (*domain.Resource, error) {
-	query := `
-		SELECT id, name, description, attributes, created_at, updated_at
-		FROM resources
-		WHERE id = ?
-	`
-
-	var resource domain.Resource
-	err := r.db.DB.QueryRowContext(ctx, query, id).Scan(
-		&resource.ID,
-		&resource.Name,
-		&resource.Description,
-		&resource.Attributes,
-		&resource.CreatedAt,
-		&resource.UpdatedAt,
-	)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("resource not found")
-		}
-		return nil, fmt.Errorf("failed to get resource: %w", err)
+func (r *ResourceRepository) GetByID(ctx context.Context, id string) (*domain.Resource, error) {
+	var resource Resource
+	result := r.db.DB.WithContext(ctx).First(&resource, "id = ?", id)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get resource: %w", result.Error)
 	}
 
-	return &resource, nil
+	return resource.toDomain(), nil
 }
 
 // List retrieves a paginated list of resources
-func (r *SQLiteResourceRepository) List(ctx context.Context, limit, offset int) ([]*domain.Resource, error) {
-	query := `
-		SELECT id, name, description, attributes, created_at, updated_at
-		FROM resources
-		ORDER BY created_at DESC
-		LIMIT ? OFFSET ?
-	`
-
-	rows, err := r.db.DB.QueryContext(ctx, query, limit, offset)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list resources: %w", err)
-	}
-	defer rows.Close()
-
-	var resources []*domain.Resource
-	for rows.Next() {
-		var resource domain.Resource
-		err := rows.Scan(
-			&resource.ID,
-			&resource.Name,
-			&resource.Description,
-			&resource.Attributes,
-			&resource.CreatedAt,
-			&resource.UpdatedAt,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan resource: %w", err)
-		}
-		resources = append(resources, &resource)
+func (r *ResourceRepository) List(ctx context.Context, limit, offset int) ([]*domain.Resource, error) {
+	var resources []Resource
+	result := r.db.DB.WithContext(ctx).Limit(limit).Offset(offset).Find(&resources)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to list resources: %w", result.Error)
 	}
 
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error in rows: %w", err)
+	domainResources := make([]*domain.Resource, len(resources))
+	for i, resource := range resources {
+		domainResources[i] = resource.toDomain()
 	}
 
-	return resources, nil
+	return domainResources, nil
 }
 
-// Update updates an existing resource
-func (r *SQLiteResourceRepository) Update(ctx context.Context, resource *domain.Resource) error {
+// Update updates a resource in the database
+func (r *ResourceRepository) Update(ctx context.Context, resource *domain.Resource) error {
 	resource.UpdatedAt = time.Now()
 
-	query := `
-		UPDATE resources
-		SET name = ?, description = ?, attributes = ?, updated_at = ?
-		WHERE id = ?
-	`
-
-	result, err := r.db.DB.ExecContext(
-		ctx,
-		query,
-		resource.Name,
-		resource.Description,
-		resource.Attributes,
-		resource.UpdatedAt,
-		resource.ID,
-	)
-
-	if err != nil {
-		return fmt.Errorf("failed to update resource: %w", err)
+	gormResource := fromDomain(resource)
+	result := r.db.DB.WithContext(ctx).Save(gormResource)
+	if result.Error != nil {
+		return fmt.Errorf("failed to update resource: %w", result.Error)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
+	if result.RowsAffected == 0 {
 		return fmt.Errorf("resource not found")
 	}
 
 	return nil
 }
 
-// Delete deletes a resource by ID
-func (r *SQLiteResourceRepository) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM resources WHERE id = ?`
-
-	result, err := r.db.DB.ExecContext(ctx, query, id)
-	if err != nil {
-		return fmt.Errorf("failed to delete resource: %w", err)
+// Delete performs a soft delete on a resource and returns the deleted resource
+func (r *ResourceRepository) Delete(ctx context.Context, id string) (*domain.Resource, error) {
+	// First retrieve the resource to return it after deletion
+	var resource Resource
+	getResult := r.db.DB.WithContext(ctx).First(&resource, "id = ?", id)
+	if getResult.Error != nil {
+		return nil, fmt.Errorf("failed to get resource: %w", getResult.Error)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+	// Perform soft delete
+	now := time.Now()
+	result := r.db.DB.WithContext(ctx).Model(&Resource{}).Where("id = ?", id).Update("deleted_at", now)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to soft delete resource: %w", result.Error)
 	}
 
-	if rowsAffected == 0 {
-		return fmt.Errorf("resource not found")
+	if result.RowsAffected == 0 {
+		return nil, fmt.Errorf("resource not found")
 	}
 
-	return nil
+	// Update the retrieved resource with deletion time
+	resource.DeletedAt = &now
+
+	return resource.toDomain(), nil
 }

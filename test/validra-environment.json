@@ -1,0 +1,32 @@
+{
+  "id": "fef67353-d8b1-4d36-a8a1-7151127b13ec",
+  "name": "Validra API Environment",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "enabled": true
+    },
+    {
+      "key": "resourceId",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "roleId",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "actionId",
+      "value": "",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

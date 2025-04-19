@@ -80,6 +80,11 @@ func (s *ActionService) UpdateAction(ctx context.Context, action *domain.Action)
 }
 
 // DeleteAction deletes an action by ID
-func (s *ActionService) DeleteAction(ctx context.Context, id string) error {
+func (s *ActionService) DeleteAction(ctx context.Context, id string) (*domain.Action, error) {
 	return s.actionRepo.Delete(ctx, id)
+}
+
+// ActionRepository returns the action repository
+func (s *ActionService) ActionRepository() domain.ActionRepository {
+	return s.actionRepo
 }

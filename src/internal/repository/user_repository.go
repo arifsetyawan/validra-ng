@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -11,20 +10,54 @@ import (
 	"github.com/google/uuid"
 )
 
-// SQLiteUserRepository implements domain.UserRepository using SQLite
-type SQLiteUserRepository struct {
-	db *database.SQLiteDB
+// GormUserRepository implements domain.UserRepository using GORM with PostgreSQL
+type UserRepository struct {
+	db *database.PostgresDB
 }
 
-// NewSQLiteUserRepository creates a new SQLite repository for users
-func NewSQLiteUserRepository(db *database.SQLiteDB) domain.UserRepository {
-	return &SQLiteUserRepository{
+// NewUserRepository creates a new GORM repository for users
+func NewUserRepository(db *database.PostgresDB) domain.UserRepository {
+	return &UserRepository{
 		db: db,
 	}
 }
 
+// User is the GORM model for users
+type User struct {
+	ID         string `gorm:"primaryKey"`
+	Username   string `gorm:"not null;unique"`
+	Attributes []byte
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  *time.Time `gorm:"index"`
+}
+
+// toDomain converts a GORM model to a domain model
+func (u *User) toDomain() *domain.User {
+	return &domain.User{
+		ID:         u.ID,
+		Username:   u.Username,
+		Attributes: u.Attributes,
+		CreatedAt:  u.CreatedAt,
+		UpdatedAt:  u.UpdatedAt,
+		DeletedAt:  u.DeletedAt,
+	}
+}
+
+// fromDomain converts a domain model to a GORM model
+func userFromDomain(u *domain.User) *User {
+	return &User{
+		ID:         u.ID,
+		Username:   u.Username,
+		Attributes: u.Attributes,
+		CreatedAt:  u.CreatedAt,
+		UpdatedAt:  u.UpdatedAt,
+		DeletedAt:  u.DeletedAt,
+	}
+}
+
 // Create inserts a new user into the database
-func (r *SQLiteUserRepository) Create(ctx context.Context, user *domain.User) error {
+func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 	// Generate a new UUID if ID is not provided
 	if user.ID == "" {
 		user.ID = uuid.New().String()
@@ -34,172 +67,92 @@ func (r *SQLiteUserRepository) Create(ctx context.Context, user *domain.User) er
 	user.CreatedAt = now
 	user.UpdatedAt = now
 
-	query := `
-		INSERT INTO users (id, username, attributes, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)
-	`
-
-	_, err := r.db.DB.ExecContext(
-		ctx,
-		query,
-		user.ID,
-		user.Username,
-		user.Attributes,
-		user.CreatedAt,
-		user.UpdatedAt,
-	)
-
-	if err != nil {
-		return fmt.Errorf("failed to create user: %w", err)
+	gormUser := userFromDomain(user)
+	result := r.db.DB.WithContext(ctx).Create(gormUser)
+	if result.Error != nil {
+		return fmt.Errorf("failed to create user: %w", result.Error)
 	}
 
 	return nil
 }
 
 // GetByID retrieves a user by ID
-func (r *SQLiteUserRepository) GetByID(ctx context.Context, id string) (*domain.User, error) {
-	query := `
-		SELECT id, username, attributes, created_at, updated_at
-		FROM users
-		WHERE id = ?
-	`
-
-	var user domain.User
-	err := r.db.DB.QueryRowContext(ctx, query, id).Scan(
-		&user.ID,
-		&user.Username,
-		&user.Attributes,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user not found")
-		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+func (r *UserRepository) GetByID(ctx context.Context, id string) (*domain.User, error) {
+	var user User
+	result := r.db.DB.WithContext(ctx).First(&user, "id = ?", id)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get user: %w", result.Error)
 	}
 
-	return &user, nil
+	return user.toDomain(), nil
 }
 
 // GetByUsername retrieves a user by username
-func (r *SQLiteUserRepository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
-	query := `
-		SELECT id, username, attributes, created_at, updated_at
-		FROM users
-		WHERE username = ?
-	`
-
-	var user domain.User
-	err := r.db.DB.QueryRowContext(ctx, query, username).Scan(
-		&user.ID,
-		&user.Username,
-		&user.Attributes,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user not found")
-		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
+	var user User
+	result := r.db.DB.WithContext(ctx).First(&user, "username = ?", username)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get user: %w", result.Error)
 	}
 
-	return &user, nil
+	return user.toDomain(), nil
 }
 
 // List retrieves a paginated list of users
-func (r *SQLiteUserRepository) List(ctx context.Context, limit, offset int) ([]*domain.User, error) {
-	query := `
-		SELECT id, username, attributes, created_at, updated_at
-		FROM users
-		ORDER BY created_at DESC
-		LIMIT ? OFFSET ?
-	`
-
-	rows, err := r.db.DB.QueryContext(ctx, query, limit, offset)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list users: %w", err)
-	}
-	defer rows.Close()
-
-	var users []*domain.User
-	for rows.Next() {
-		var user domain.User
-		err := rows.Scan(
-			&user.ID,
-			&user.Username,
-			&user.Attributes,
-			&user.CreatedAt,
-			&user.UpdatedAt,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan user: %w", err)
-		}
-		users = append(users, &user)
+func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*domain.User, error) {
+	var users []User
+	result := r.db.DB.WithContext(ctx).Limit(limit).Offset(offset).Find(&users)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to list users: %w", result.Error)
 	}
 
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error in rows: %w", err)
+	domainUsers := make([]*domain.User, len(users))
+	for i, user := range users {
+		domainUsers[i] = user.toDomain()
 	}
 
-	return users, nil
+	return domainUsers, nil
 }
 
-// Update updates an existing user
-func (r *SQLiteUserRepository) Update(ctx context.Context, user *domain.User) error {
+// Update updates a user in the database
+func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 	user.UpdatedAt = time.Now()
 
-	query := `
-		UPDATE users
-		SET username = ?, attributes = ?, updated_at = ?
-		WHERE id = ?
-	`
-
-	result, err := r.db.DB.ExecContext(
-		ctx,
-		query,
-		user.Username,
-		user.Attributes,
-		user.UpdatedAt,
-		user.ID,
-	)
-
-	if err != nil {
-		return fmt.Errorf("failed to update user: %w", err)
+	gormUser := userFromDomain(user)
+	result := r.db.DB.WithContext(ctx).Save(gormUser)
+	if result.Error != nil {
+		return fmt.Errorf("failed to update user: %w", result.Error)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
+	if result.RowsAffected == 0 {
 		return fmt.Errorf("user not found")
 	}
 
 	return nil
 }
 
-// Delete deletes a user by ID
-func (r *SQLiteUserRepository) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM users WHERE id = ?`
-
-	result, err := r.db.DB.ExecContext(ctx, query, id)
-	if err != nil {
-		return fmt.Errorf("failed to delete user: %w", err)
+// Delete performs a soft delete on a user and returns the deleted user
+func (r *UserRepository) Delete(ctx context.Context, id string) (*domain.User, error) {
+	// First retrieve the user to return it after deletion
+	var user User
+	getResult := r.db.DB.WithContext(ctx).First(&user, "id = ?", id)
+	if getResult.Error != nil {
+		return nil, fmt.Errorf("failed to get user: %w", getResult.Error)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
+	// Perform soft delete
+	now := time.Now()
+	result := r.db.DB.WithContext(ctx).Model(&User{}).Where("id = ?", id).Update("deleted_at", now)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to soft delete user: %w", result.Error)
 	}
 
-	if rowsAffected == 0 {
-		return fmt.Errorf("user not found")
+	if result.RowsAffected == 0 {
+		return nil, fmt.Errorf("user not found")
 	}
 
-	return nil
+	// Update the retrieved user with deletion time
+	user.DeletedAt = &now
+
+	return user.toDomain(), nil
 }

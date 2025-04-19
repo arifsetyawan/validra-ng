@@ -23,14 +23,13 @@ type ServerConfig struct {
 
 // DatabaseConfig holds database-related configuration
 type DatabaseConfig struct {
-	Type     string
+	Type     string // Type will always be "postgres" now
 	Host     string
 	Port     int
 	User     string
 	Password string
 	Name     string
 	SSLMode  string
-	Path     string // For SQLite compatibility
 }
 
 // Load loads configuration from environment variables
@@ -56,7 +55,6 @@ func Load() *Config {
 			Password: getEnv("DB_PASSWORD", "postgres"),
 			Name:     getEnv("DB_NAME", "validra"),
 			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
-			Path:     getEnv("DB_PATH", "validra.db"), // For SQLite compatibility
 		},
 	}
 }

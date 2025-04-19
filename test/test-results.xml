@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Validra API E2E Tests" tests="23" time="0.140">
+  <testsuite name="Health Check" id="c4fdd954-d803-4b2c-bebb-167929519cfb" timestamp="2025-04-19T13:53:06.645Z" tests="2" failures="0" errors="0" time="0.015">
+    <testcase name="Status code is 200" time="0.015" classname="HealthCheck"/>
+    <testcase name="Response has status property" time="0.015" classname="HealthCheck"/>
+  </testsuite>
+  <testsuite name="Resources / Create Resource" id="16a4b1f2-b56e-48b9-84f0-2db994c1199b" timestamp="2025-04-19T13:53:06.645Z" tests="3" failures="0" errors="0" time="0.026">
+    <testcase name="Status code is 201 or 200" time="0.026" classname="ResourcesCreateResource"/>
+    <testcase name="Response has resource data" time="0.026" classname="ResourcesCreateResource"/>
+    <testcase name="Resource name matches request" time="0.026" classname="ResourcesCreateResource"/>
+  </testsuite>
+  <testsuite name="Resources / Get All Resources" id="9692c470-f877-4324-88b5-83779a7973db" timestamp="2025-04-19T13:53:06.645Z" tests="2" failures="0" errors="0" time="0.003">
+    <testcase name="Status code is 200" time="0.003" classname="ResourcesGetAllResources"/>
+    <testcase name="Response has resources array" time="0.003" classname="ResourcesGetAllResources"/>
+  </testsuite>
+  <testsuite name="Resources / Get Resource by ID" id="4a36afeb-b6a2-4de3-84c7-c35468b0edf7" timestamp="2025-04-19T13:53:06.645Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Status code is 200" time="0.002" classname="ResourcesGetResourceById"/>
+    <testcase name="Response has resource data" time="0.002" classname="ResourcesGetResourceById"/>
+  </testsuite>
+  <testsuite name="Resources / Update Resource" id="002d6aad-3945-4e1e-bbea-039758657c98" timestamp="2025-04-19T13:53:06.645Z" tests="3" failures="0" errors="0" time="0.013">
+    <testcase name="Status code is 200" time="0.013" classname="ResourcesUpdateResource"/>
+    <testcase name="Response has updated resource data" time="0.013" classname="ResourcesUpdateResource"/>
+    <testcase name="Resource updated with correct data" time="0.013" classname="ResourcesUpdateResource"/>
+  </testsuite>
+  <testsuite name="Users / Create User" id="f877660f-0dcf-4c26-be66-9142401775a9" timestamp="2025-04-19T13:53:06.645Z" tests="3" failures="2" errors="0" time="0.013">
+    <testcase name="Status code is 201" time="0.013" classname="UsersCreateUser"/>
+    <testcase name="Response has user data" time="0.013" classname="UsersCreateUser">
+      <failure type="AssertionFailure" message="expected { …(4) } to have property 'email'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Users / Create User.]]>
+        <![CDATA[Test description: Response has user data.]]>
+        <![CDATA[Error message: expected { …(4) } to have property 'email'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected { …(4) } to have property 'email'
+   at Object.eval sandbox-script.js:2:6).]]>
+      </failure>
+    </testcase>
+    <testcase name="User data matches request" time="0.013" classname="UsersCreateUser">
+      <failure type="AssertionFailure" message="expected undefined to deeply equal 'test@example.com'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Users / Create User.]]>
+        <![CDATA[Test description: User data matches request.]]>
+        <![CDATA[Error message: expected undefined to deeply equal 'test@example.com'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected undefined to deeply equal 'test@example.com'
+   at Object.eval sandbox-script.js:3:6).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Users / Get All Users" id="122d3ba2-4569-40da-9ccd-ac58442246d3" timestamp="2025-04-19T13:53:06.645Z" tests="2" failures="0" errors="0" time="0.003">
+    <testcase name="Status code is 200" time="0.003" classname="UsersGetAllUsers"/>
+    <testcase name="Response has users array" time="0.003" classname="UsersGetAllUsers"/>
+  </testsuite>
+  <testsuite name="Users / Get User by ID" id="066ae014-c4b6-4428-a0d9-356984bba756" timestamp="2025-04-19T13:53:06.645Z" tests="2" failures="2" errors="0" time="0.002">
+    <testcase name="Status code is 200" time="0.002" classname="UsersGetUserById">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 404">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Users / Get User by ID.]]>
+        <![CDATA[Test description: Status code is 200.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 404.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 404
+   at Object.eval sandbox-script.js:1:8).]]>
+      </failure>
+    </testcase>
+    <testcase name="Response has user data" time="0.002" classname="UsersGetUserById">
+      <failure type="AssertionFailure" message="expected { message: 'Not Found' } to have property 'id'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Users / Get User by ID.]]>
+        <![CDATA[Test description: Response has user data.]]>
+        <![CDATA[Error message: expected { message: 'Not Found' } to have property 'id'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected { message: 'Not Found' } to have property 'id'
+   at Object.eval sandbox-script.js:2:8).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Users / Update User" id="cbc9a0eb-fbb3-4238-9168-396f4b49d835" timestamp="2025-04-19T13:53:06.645Z" tests="3" failures="3" errors="0" time="0.002">
+    <testcase name="Status code is 200" time="0.002" classname="UsersUpdateUser">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 404">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Users / Update User.]]>
+        <![CDATA[Test description: Status code is 200.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 404.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 404
+   at Object.eval sandbox-script.js:1:9).]]>
+      </failure>
+    </testcase>
+    <testcase name="Response has updated user data" time="0.002" classname="UsersUpdateUser">
+      <failure type="AssertionFailure" message="expected { message: 'Not Found' } to have property 'id'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Users / Update User.]]>
+        <![CDATA[Test description: Response has updated user data.]]>
+        <![CDATA[Error message: expected { message: 'Not Found' } to have property 'id'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected { message: 'Not Found' } to have property 'id'
+   at Object.eval sandbox-script.js:2:9).]]>
+      </failure>
+    </testcase>
+    <testcase name="User updated with correct data" time="0.002" classname="UsersUpdateUser">
+      <failure type="AssertionFailure" message="expected undefined to deeply equal 'updated_testuser'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Users / Update User.]]>
+        <![CDATA[Test description: User updated with correct data.]]>
+        <![CDATA[Error message: expected undefined to deeply equal 'updated_testuser'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected undefined to deeply equal 'updated_testuser'
+   at Object.eval sandbox-script.js:3:9).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Roles / Create Role" id="c7a0d865-bc9a-4dd8-9163-61d66283be78" timestamp="2025-04-19T13:53:06.645Z" tests="3" failures="0" errors="0" time="0.010">
+    <testcase name="Status code is 201" time="0.010" classname="RolesCreateRole"/>
+    <testcase name="Response has role data" time="0.010" classname="RolesCreateRole"/>
+    <testcase name="Role data matches request" time="0.010" classname="RolesCreateRole"/>
+  </testsuite>
+  <testsuite name="Roles / Get All Roles" id="4cfeb3cc-adc2-4bf7-80d0-63b7cc5c82a8" timestamp="2025-04-19T13:53:06.645Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Status code is 200" time="0.002" classname="RolesGetAllRoles"/>
+    <testcase name="Response has roles array" time="0.002" classname="RolesGetAllRoles"/>
+  </testsuite>
+  <testsuite name="Roles / Get Role by ID" id="12d7cc12-6823-4877-b69a-bbcc8eeec3f1" timestamp="2025-04-19T13:53:06.645Z" tests="2" failures="0" errors="0" time="0.003">
+    <testcase name="Status code is 200" time="0.003" classname="RolesGetRoleById"/>
+    <testcase name="Response has role data" time="0.003" classname="RolesGetRoleById"/>
+  </testsuite>
+  <testsuite name="Roles / Update Role" id="16c26e9b-7f58-4b72-bd53-7366b0fe76b4" timestamp="2025-04-19T13:53:06.645Z" tests="3" failures="0" errors="0" time="0.009">
+    <testcase name="Status code is 200" time="0.009" classname="RolesUpdateRole"/>
+    <testcase name="Response has updated role data" time="0.009" classname="RolesUpdateRole"/>
+    <testcase name="Role updated with correct data" time="0.009" classname="RolesUpdateRole"/>
+  </testsuite>
+  <testsuite name="Actions / Create Action" id="c4a80c10-5b71-48eb-b090-200940299c86" timestamp="2025-04-19T13:53:06.645Z" tests="3" failures="1" errors="0" time="0.006">
+    <testcase name="Status code is 201" time="0.006" classname="ActionsCreateAction"/>
+    <testcase name="Response has action data" time="0.006" classname="ActionsCreateAction">
+      <failure type="AssertionFailure" message="expected { …(6) } to have property 'resourceId'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Actions / Create Action.]]>
+        <![CDATA[Test description: Response has action data.]]>
+        <![CDATA[Error message: expected { …(6) } to have property 'resourceId'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected { …(6) } to have property 'resourceId'
+   at Object.eval sandbox-script.js:2:14).]]>
+      </failure>
+    </testcase>
+    <testcase name="Action data matches request" time="0.006" classname="ActionsCreateAction"/>
+  </testsuite>
+  <testsuite name="Actions / Get All Actions" id="b2db71f2-ddb5-4cf4-805e-b5afbebcc8b5" timestamp="2025-04-19T13:53:06.645Z" tests="2" failures="0" errors="0" time="0.003">
+    <testcase name="Status code is 200" time="0.003" classname="ActionsGetAllActions"/>
+    <testcase name="Response has actions array" time="0.003" classname="ActionsGetAllActions"/>
+  </testsuite>
+  <testsuite name="Actions / Get Action by ID" id="535f66cb-34a8-411b-b4ee-07fd72c9b78a" timestamp="2025-04-19T13:53:06.645Z" tests="2" failures="2" errors="0" time="0.001">
+    <testcase name="Status code is 200" time="0.001" classname="ActionsGetActionById">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 404">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Actions / Get Action by ID.]]>
+        <![CDATA[Test description: Status code is 200.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 404.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 404
+   at Object.eval sandbox-script.js:1:16).]]>
+      </failure>
+    </testcase>
+    <testcase name="Response has action data" time="0.001" classname="ActionsGetActionById">
+      <failure type="AssertionFailure" message="expected { message: 'Not Found' } to have property 'id'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Actions / Get Action by ID.]]>
+        <![CDATA[Test description: Response has action data.]]>
+        <![CDATA[Error message: expected { message: 'Not Found' } to have property 'id'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected { message: 'Not Found' } to have property 'id'
+   at Object.eval sandbox-script.js:2:16).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Actions / Get Actions by Resource ID" id="1ce4b7f2-744e-4c93-9e44-9864925d9cb5" timestamp="2025-04-19T13:53:06.645Z" tests="2" failures="1" errors="0" time="0.001">
+    <testcase name="Status code is 200" time="0.001" classname="ActionsGetActionsByResourceId"/>
+    <testcase name="Response is an array of actions" time="0.001" classname="ActionsGetActionsByResourceId">
+      <failure type="AssertionFailure" message="expected { …(6) } to have property 'resourceId'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Actions / Get Actions by Resource ID.]]>
+        <![CDATA[Test description: Response is an array of actions.]]>
+        <![CDATA[Error message: expected { …(6) } to have property 'resourceId'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected { …(6) } to have property 'resourceId'
+   at Object.eval sandbox-script.js:2:17).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Actions / Update Action" id="d5519f92-e09a-45e8-98e9-52a37aa8a35e" timestamp="2025-04-19T13:53:06.645Z" tests="3" failures="3" errors="0" time="0.001">
+    <testcase name="Status code is 200" time="0.001" classname="ActionsUpdateAction">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 404">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Actions / Update Action.]]>
+        <![CDATA[Test description: Status code is 200.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 404.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 404
+   at Object.eval sandbox-script.js:1:18).]]>
+      </failure>
+    </testcase>
+    <testcase name="Response has updated action data" time="0.001" classname="ActionsUpdateAction">
+      <failure type="AssertionFailure" message="expected { message: 'Not Found' } to have property 'id'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Actions / Update Action.]]>
+        <![CDATA[Test description: Response has updated action data.]]>
+        <![CDATA[Error message: expected { message: 'Not Found' } to have property 'id'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected { message: 'Not Found' } to have property 'id'
+   at Object.eval sandbox-script.js:2:18).]]>
+      </failure>
+    </testcase>
+    <testcase name="Action updated with correct data" time="0.001" classname="ActionsUpdateAction">
+      <failure type="AssertionFailure" message="expected undefined to deeply equal 'Updated Test Action'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Actions / Update Action.]]>
+        <![CDATA[Test description: Action updated with correct data.]]>
+        <![CDATA[Error message: expected undefined to deeply equal 'Updated Test Action'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected undefined to deeply equal 'Updated Test Action'
+   at Object.eval sandbox-script.js:3:18).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Permissions / Check Permission" id="8146d580-3cf5-485f-a86e-b642e12d23b4" timestamp="2025-04-19T13:53:06.645Z" tests="4" failures="0" errors="0" time="0.004">
+    <testcase name="Status code is 200" time="0.004" classname="PermissionsCheckPermission"/>
+    <testcase name="Response has correct structure" time="0.004" classname="PermissionsCheckPermission"/>
+    <testcase name="Context contains expected properties" time="0.004" classname="PermissionsCheckPermission"/>
+    <testcase name="Request data was processed correctly" time="0.004" classname="PermissionsCheckPermission"/>
+  </testsuite>
+  <testsuite name="Cleanup / Delete Action" id="8e69c03c-6ba5-4b72-86da-2328aa67ba7e" timestamp="2025-04-19T13:53:06.645Z" tests="1" failures="1" errors="0" time="0.001">
+    <testcase name="Status code is 204" time="0.001" classname="CleanupDeleteAction">
+      <failure type="AssertionFailure" message="expected response to have status code 204 but got 404">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Cleanup / Delete Action.]]>
+        <![CDATA[Test description: Status code is 204.]]>
+        <![CDATA[Error message: expected response to have status code 204 but got 404.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 204 but got 404
+   at Object.eval sandbox-script.js:1:20).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Cleanup / Delete Role" id="d046619f-de09-4427-a4fd-e10adcec76fc" timestamp="2025-04-19T13:53:06.645Z" tests="1" failures="0" errors="0" time="0.012">
+    <testcase name="Status code is 204" time="0.012" classname="CleanupDeleteRole"/>
+  </testsuite>
+  <testsuite name="Cleanup / Delete User" id="a643f816-4308-4b32-bc94-02ca1da5678a" timestamp="2025-04-19T13:53:06.645Z" tests="1" failures="1" errors="0" time="0.001">
+    <testcase name="Status code is 204" time="0.001" classname="CleanupDeleteUser">
+      <failure type="AssertionFailure" message="expected response to have status code 204 but got 404">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Cleanup / Delete User.]]>
+        <![CDATA[Test description: Status code is 204.]]>
+        <![CDATA[Error message: expected response to have status code 204 but got 404.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 204 but got 404
+   at Object.eval sandbox-script.js:1:22).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Cleanup / Delete Resource" id="024b052d-adfb-41bf-9465-8471b9f71a91" timestamp="2025-04-19T13:53:06.645Z" tests="1" failures="1" errors="0" time="0.007">
+    <testcase name="Status code is 204" time="0.007" classname="CleanupDeleteResource">
+      <failure type="AssertionFailure" message="expected response to have status code 204 but got 500">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: f87b5515-b1f1-4934-9d09-df5c66d9e123.]]>
+        <![CDATA[Collection name: Validra API E2E Tests.]]>
+        <![CDATA[Request name: Cleanup / Delete Resource.]]>
+        <![CDATA[Test description: Status code is 204.]]>
+        <![CDATA[Error message: expected response to have status code 204 but got 500.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 204 but got 500
+   at Object.eval sandbox-script.js:1:23).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+</testsuites>

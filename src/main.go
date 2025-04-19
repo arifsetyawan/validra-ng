@@ -45,64 +45,41 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 	log.Info("Configuration loaded")
-	// Initialize database based on type
+
+	// Initialize database repositories
 	var resourceRepo domain.ResourceRepository
 	var userRepo domain.UserRepository
 	var roleRepo domain.RoleRepository
 	var actionRepo domain.ActionRepository
 
-	if cfg.Database.Type == "postgres" {
-		// Initialize PostgreSQL with GORM
-		db, err := database.NewPostgresDB(
-			cfg.Database.Host,
-			cfg.Database.User,
-			cfg.Database.Password,
-			cfg.Database.Name,
-			cfg.Database.Port,
-			cfg.Database.SSLMode,
-		)
+	// Initialize PostgreSQL with GORM
+	db, err := database.NewPostgresDB(
+		cfg.Database.Host,
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Name,
+		cfg.Database.Port,
+		cfg.Database.SSLMode,
+	)
 
-		if err != nil {
-			log.Error("Failed to connect to PostgreSQL database: %v", err)
-			os.Exit(1)
-		}
-		defer db.Close()
-
-		// Run migrations
-		if err := db.Migrate(); err != nil {
-			log.Error("Failed to migrate database: %v", err)
-			os.Exit(1)
-		}
-		log.Info("PostgreSQL database migrations completed")
-
-		// Initialize repositories with GORM
-		resourceRepo = repository.NewGormResourceRepository(db)
-		userRepo = repository.NewGormUserRepository(db)
-		roleRepo = repository.NewGormRoleRepository(db)
-		actionRepo = repository.NewGormActionRepository(db)
-
-	} else {
-		// Initialize SQLite (for backwards compatibility)
-		db, err := database.NewSQLiteDB(cfg.Database.Path)
-		if err != nil {
-			log.Error("Failed to connect to SQLite database: %v", err)
-			os.Exit(1)
-		}
-		defer db.Close()
-
-		// Run migrations
-		if err := db.Migrate(); err != nil {
-			log.Error("Failed to migrate SQLite database: %v", err)
-			os.Exit(1)
-		}
-		log.Info("SQLite database migrations completed")
-
-		// Initialize repositories with SQLite
-		resourceRepo = repository.NewSQLiteResourceRepository(db)
-		userRepo = repository.NewSQLiteUserRepository(db)
-		roleRepo = repository.NewSQLiteRoleRepository(db)
-		actionRepo = repository.NewSQLiteActionRepository(db)
+	if err != nil {
+		log.Error("Failed to connect to PostgreSQL database: %v", err)
+		os.Exit(1)
 	}
+	defer db.Close()
+
+	// Run migrations
+	if err := db.Migrate(); err != nil {
+		log.Error("Failed to migrate database: %v", err)
+		os.Exit(1)
+	}
+	log.Info("PostgreSQL database migrations completed")
+
+	// Initialize repositories with GORM
+	resourceRepo = repository.NewResourceRepository(db)
+	userRepo = repository.NewUserRepository(db)
+	roleRepo = repository.NewRoleRepository(db)
+	actionRepo = repository.NewActionRepository(db)
 
 	// Initialize Echo
 	e := echo.New()

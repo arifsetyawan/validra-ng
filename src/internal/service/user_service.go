@@ -71,6 +71,11 @@ func (s *UserService) UpdateUser(ctx context.Context, user *domain.User) error {
 }
 
 // DeleteUser deletes a user by ID
-func (s *UserService) DeleteUser(ctx context.Context, id string) error {
+func (s *UserService) DeleteUser(ctx context.Context, id string) (*domain.User, error) {
 	return s.userRepo.Delete(ctx, id)
+}
+
+// UserRepository returns the user repository
+func (s *UserService) UserRepository() domain.UserRepository {
+	return s.userRepo
 }

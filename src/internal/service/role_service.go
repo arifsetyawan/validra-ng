@@ -57,12 +57,11 @@ func (s *RoleService) UpdateRole(ctx context.Context, role *domain.Role) error {
 }
 
 // DeleteRole deletes a role by ID
-func (s *RoleService) DeleteRole(ctx context.Context, id string) error {
-	// Check if the role exists
-	_, err := s.roleRepo.GetByID(ctx, id)
-	if err != nil {
-		return fmt.Errorf("role not found")
-	}
-
+func (s *RoleService) DeleteRole(ctx context.Context, id string) (*domain.Role, error) {
 	return s.roleRepo.Delete(ctx, id)
+}
+
+// RoleRepository returns the role repository
+func (s *RoleService) RoleRepository() domain.RoleRepository {
+	return s.roleRepo
 }

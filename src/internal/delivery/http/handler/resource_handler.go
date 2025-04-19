@@ -180,7 +180,7 @@ func (h *ResourceHandler) UpdateResource(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Resource ID"
-// @Success 204 "Resource deleted"
+// @Success 200 {object} dto.ResourceResponse "Resource soft deleted"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 404 {object} map[string]string "Resource not found"
 // @Failure 500 {object} map[string]string "Internal server error"
@@ -191,12 +191,14 @@ func (h *ResourceHandler) DeleteResource(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing resource ID"})
 	}
 
-	if err := h.resourceService.DeleteResource(c.Request().Context(), id); err != nil {
+	deletedResource, err := h.resourceService.DeleteResource(c.Request().Context(), id)
+	if err != nil {
 		if err.Error() == "resource not found" {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": "Resource not found"})
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	response := dto.ToResourceResponse(deletedResource)
+	return c.JSON(http.StatusOK, response)
 }

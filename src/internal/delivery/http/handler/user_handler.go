@@ -180,7 +180,7 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
-// @Success 204 "User deleted"
+// @Success 200 {object} dto.UserResponse "User soft deleted"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 404 {object} map[string]string "User not found"
 // @Failure 500 {object} map[string]string "Internal server error"
@@ -191,12 +191,14 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing user ID"})
 	}
 
-	if err := h.userService.DeleteUser(c.Request().Context(), id); err != nil {
+	deletedUser, err := h.userService.DeleteUser(c.Request().Context(), id)
+	if err != nil {
 		if err.Error() == "user not found" {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	response := dto.ToUserResponse(deletedUser)
+	return c.JSON(http.StatusOK, response)
 }

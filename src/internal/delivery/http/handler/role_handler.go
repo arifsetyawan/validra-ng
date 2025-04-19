@@ -180,7 +180,7 @@ func (h *RoleHandler) UpdateRole(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Role ID"
-// @Success 204 "Role deleted"
+// @Success 200 {object} dto.RoleResponse "Role soft deleted"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 404 {object} map[string]string "Role not found"
 // @Failure 500 {object} map[string]string "Internal server error"
@@ -191,12 +191,14 @@ func (h *RoleHandler) DeleteRole(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing role ID"})
 	}
 
-	if err := h.roleService.DeleteRole(c.Request().Context(), id); err != nil {
+	deletedRole, err := h.roleService.DeleteRole(c.Request().Context(), id)
+	if err != nil {
 		if err.Error() == "role not found" {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": "Role not found"})
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	response := dto.ToRoleResponse(deletedRole)
+	return c.JSON(http.StatusOK, response)
 }

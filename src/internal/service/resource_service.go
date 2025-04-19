@@ -54,6 +54,11 @@ func (s *ResourceService) UpdateResource(ctx context.Context, resource *domain.R
 }
 
 // DeleteResource deletes a resource by ID
-func (s *ResourceService) DeleteResource(ctx context.Context, id string) error {
+func (s *ResourceService) DeleteResource(ctx context.Context, id string) (*domain.Resource, error) {
 	return s.resourceRepo.Delete(ctx, id)
+}
+
+// ResourceRepository returns the resource repository
+func (s *ResourceService) ResourceRepository() domain.ResourceRepository {
+	return s.resourceRepo
 }

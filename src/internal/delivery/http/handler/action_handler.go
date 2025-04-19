@@ -216,7 +216,7 @@ func (h *ActionHandler) UpdateAction(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Action ID"
-// @Success 204 "Action deleted"
+// @Success 200 {object} dto.ActionResponse "Action soft deleted"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 404 {object} map[string]string "Action not found"
 // @Failure 500 {object} map[string]string "Internal server error"
@@ -227,12 +227,14 @@ func (h *ActionHandler) DeleteAction(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing action ID"})
 	}
 
-	if err := h.actionService.DeleteAction(c.Request().Context(), id); err != nil {
+	deletedAction, err := h.actionService.DeleteAction(c.Request().Context(), id)
+	if err != nil {
 		if err.Error() == "action not found" {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": "Action not found"})
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	response := dto.ToActionResponse(deletedAction)
+	return c.JSON(http.StatusOK, response)
 }
