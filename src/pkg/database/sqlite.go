@@ -51,6 +51,23 @@ func (s *SQLiteDB) Migrate() error {
 		return fmt.Errorf("failed to create resources table: %w", err)
 	}
 
+	// Create Actions table
+	_, err = s.DB.Exec(`
+		CREATE TABLE IF NOT EXISTS actions (
+			id TEXT PRIMARY KEY,
+			resource_id TEXT NOT NULL,
+			name TEXT NOT NULL,
+			description TEXT,
+			attributes BLOB,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE
+		)
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to create actions table: %w", err)
+	}
+
 	// Create Roles table
 	_, err = s.DB.Exec(`
 		CREATE TABLE IF NOT EXISTS roles (

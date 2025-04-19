@@ -13,6 +13,15 @@ definitions:
     required:
     - name
     type: object
+  dto.CreateRoleRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
   dto.CreateUserRequest:
     properties:
       attributes:
@@ -28,6 +37,16 @@ definitions:
       resources:
         items:
           $ref: '#/definitions/dto.ResourceResponse'
+        type: array
+      total:
+        example: 10
+        type: integer
+    type: object
+  dto.ListRolesResponse:
+    properties:
+      roles:
+        items:
+          $ref: '#/definitions/dto.RoleResponse'
         type: array
       total:
         example: 10
@@ -63,6 +82,24 @@ definitions:
         example: "2025-04-19T12:00:00Z"
         type: string
     type: object
+  dto.RoleResponse:
+    properties:
+      created_at:
+        example: "2025-04-19T12:00:00Z"
+        type: string
+      description:
+        example: Administrator role with full access
+        type: string
+      id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      name:
+        example: admin
+        type: string
+      updated_at:
+        example: "2025-04-19T12:00:00Z"
+        type: string
+    type: object
   dto.UpdateResourceRequest:
     properties:
       attributes:
@@ -72,6 +109,15 @@ definitions:
         type: string
       name:
         example: Updated Resource
+        type: string
+    required:
+    - name
+    type: object
+  dto.UpdateRoleRequest:
+    properties:
+      description:
+        type: string
+      name:
         type: string
     required:
     - name
@@ -293,6 +339,182 @@ paths:
       summary: Update a resource
       tags:
       - resources
+  /api/roles:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of all roles
+      parameters:
+      - description: 'Number of items to return (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Number of items to skip (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of roles
+          schema:
+            $ref: '#/definitions/dto.ListRolesResponse'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List roles
+      tags:
+      - roles
+    post:
+      consumes:
+      - application/json
+      description: Create a new role with the provided information
+      parameters:
+      - description: Role information
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Role created
+          schema:
+            $ref: '#/definitions/dto.RoleResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new role
+      tags:
+      - roles
+  /api/roles/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a role by its ID
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Role deleted
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Role not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a role
+      tags:
+      - roles
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific role by its unique identifier
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Role found
+          schema:
+            $ref: '#/definitions/dto.RoleResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Role not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a role by ID
+      tags:
+      - roles
+    put:
+      consumes:
+      - application/json
+      description: Update an existing role by its ID
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated role information
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Role updated
+          schema:
+            $ref: '#/definitions/dto.RoleResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Role not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a role
+      tags:
+      - roles
   /api/users:
     get:
       consumes:

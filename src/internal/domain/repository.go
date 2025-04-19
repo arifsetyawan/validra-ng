@@ -11,6 +11,16 @@ type ResourceRepository interface {
 	Delete(ctx context.Context, id string) error
 }
 
+// ActionRepository defines the methods for Action data access
+type ActionRepository interface {
+	Create(ctx context.Context, action *Action) error
+	GetByID(ctx context.Context, id string) (*Action, error)
+	GetByResourceID(ctx context.Context, resourceID string) ([]*Action, error)
+	List(ctx context.Context, limit, offset int) ([]*Action, error)
+	Update(ctx context.Context, action *Action) error
+	Delete(ctx context.Context, id string) error
+}
+
 // RoleRepository defines the methods for Role data access
 type RoleRepository interface {
 	Create(ctx context.Context, role *Role) error

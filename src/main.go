@@ -36,6 +36,7 @@ import (
 // @host localhost:8080
 // @BasePath /
 // @schemes http
+// @openapi 3.0.0
 func main() {
 	// Initialize logger
 	log := logger.NewLogger()
@@ -47,6 +48,8 @@ func main() {
 	// Initialize database based on type
 	var resourceRepo domain.ResourceRepository
 	var userRepo domain.UserRepository
+	var roleRepo domain.RoleRepository
+	var actionRepo domain.ActionRepository
 
 	if cfg.Database.Type == "postgres" {
 		// Initialize PostgreSQL with GORM
@@ -75,6 +78,8 @@ func main() {
 		// Initialize repositories with GORM
 		resourceRepo = repository.NewGormResourceRepository(db)
 		userRepo = repository.NewGormUserRepository(db)
+		roleRepo = repository.NewGormRoleRepository(db)
+		actionRepo = repository.NewGormActionRepository(db)
 
 	} else {
 		// Initialize SQLite (for backwards compatibility)
@@ -95,6 +100,8 @@ func main() {
 		// Initialize repositories with SQLite
 		resourceRepo = repository.NewSQLiteResourceRepository(db)
 		userRepo = repository.NewSQLiteUserRepository(db)
+		roleRepo = repository.NewSQLiteRoleRepository(db)
+		actionRepo = repository.NewSQLiteActionRepository(db)
 	}
 
 	// Initialize Echo
@@ -107,9 +114,11 @@ func main() {
 	// Initialize services
 	resourceService := service.NewResourceService(resourceRepo)
 	userService := service.NewUserService(userRepo)
+	roleService := service.NewRoleService(roleRepo)
+	actionService := service.NewActionService(actionRepo, resourceRepo)
 
 	// Register routes
-	router.Register(e, resourceService, userService)
+	router.Register(e, resourceService, userService, roleService, actionService)
 	log.Info("Routes registered")
 
 	// Setup Swagger

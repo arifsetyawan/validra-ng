@@ -68,6 +68,17 @@ func (p *PostgresDB) Migrate() error {
 		UpdatedAt   time.Time
 	}
 
+	type Action struct {
+		ID          string `gorm:"primaryKey"`
+		ResourceID  string `gorm:"not null;index"`
+		Name        string `gorm:"not null"`
+		Description string
+		Attributes  []byte
+		CreatedAt   time.Time
+		UpdatedAt   time.Time
+		Resource    Resource `gorm:"foreignKey:ResourceID"`
+	}
+
 	type Role struct {
 		ID          string `gorm:"primaryKey"`
 		Name        string `gorm:"not null"`
@@ -85,7 +96,7 @@ func (p *PostgresDB) Migrate() error {
 	}
 
 	// Run migrations
-	err := p.DB.AutoMigrate(&Resource{}, &Role{}, &User{})
+	err := p.DB.AutoMigrate(&Resource{}, &Action{}, &Role{}, &User{})
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
