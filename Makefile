@@ -1,4 +1,4 @@
-.PHONY: build run test clean deps
+.PHONY: build run test clean deps swagger
 
 # Default binary output
 BINARY_NAME=validra-engine
@@ -35,6 +35,11 @@ clean:
 deps:
 	@echo "Installing dependencies..."
 	@go mod download
+
+# Update swagger documentation
+swagger:
+	@echo "Updating Swagger documentation..."
+	@swag init -g src/main.go
 
 # Format code
 fmt:
