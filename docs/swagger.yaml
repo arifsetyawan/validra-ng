@@ -1,0 +1,251 @@
+basePath: /
+definitions:
+  dto.CreateResourceRequest:
+    properties:
+      attributes:
+        type: object
+      description:
+        example: This is a sample resource description
+        type: string
+      name:
+        example: Sample Resource
+        type: string
+    required:
+    - name
+    type: object
+  dto.ListResourcesResponse:
+    properties:
+      resources:
+        items:
+          $ref: '#/definitions/dto.ResourceResponse'
+        type: array
+      total:
+        example: 10
+        type: integer
+    type: object
+  dto.ResourceResponse:
+    properties:
+      attributes:
+        type: object
+      created_at:
+        example: "2025-04-19T12:00:00Z"
+        type: string
+      description:
+        example: This is a sample resource description
+        type: string
+      id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      name:
+        example: Sample Resource
+        type: string
+      updated_at:
+        example: "2025-04-19T12:00:00Z"
+        type: string
+    type: object
+  dto.UpdateResourceRequest:
+    properties:
+      attributes:
+        type: object
+      description:
+        example: This is an updated resource description
+        type: string
+      name:
+        example: Updated Resource
+        type: string
+    required:
+    - name
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@validra.io
+    name: API Support
+    url: http://www.validra.io/support
+  description: API documentation for the Validra Engine service
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Validra Engine API
+  version: "1.0"
+paths:
+  /api/resources:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of all resources
+      parameters:
+      - description: 'Number of items to return (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Number of items to skip (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of resources
+          schema:
+            $ref: '#/definitions/dto.ListResourcesResponse'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List resources
+      tags:
+      - resources
+    post:
+      consumes:
+      - application/json
+      description: Create a new resource with the provided information
+      parameters:
+      - description: Resource information
+        in: body
+        name: resource
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateResourceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Resource created
+          schema:
+            $ref: '#/definitions/dto.ResourceResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new resource
+      tags:
+      - resources
+  /api/resources/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a resource by its ID
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Resource deleted
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Resource not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a resource
+      tags:
+      - resources
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific resource by its unique identifier
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource found
+          schema:
+            $ref: '#/definitions/dto.ResourceResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Resource not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a resource by ID
+      tags:
+      - resources
+    put:
+      consumes:
+      - application/json
+      description: Update an existing resource by its ID
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated resource information
+        in: body
+        name: resource
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateResourceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource updated
+          schema:
+            $ref: '#/definitions/dto.ResourceResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Resource not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a resource
+      tags:
+      - resources
+schemes:
+- http
+swagger: "2.0"
