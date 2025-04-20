@@ -41,14 +41,12 @@ func registerAPIRoutes(e *echo.Echo, resourceService *service.ResourceService, u
 	resourceHandler := handler.NewResourceHandler(resourceService)
 	userHandler := handler.NewUserHandler(userService)
 	roleHandler := handler.NewRoleHandler(roleService)
-	actionHandler := handler.NewActionHandler(actionService)
 	permissionHandler := handler.NewPermissionHandler(permissionService)
 
 	// Register routes for each handler
 	resourceHandler.Register(e)
 	userHandler.Register(e)
 	roleHandler.Register(e)
-	actionHandler.Register(e)
 	permissionHandler.Register(e)
 }
 

@@ -4,26 +4,24 @@ import (
 	"context"
 
 	"github.com/arifsetyawan/validra/src/internal/domain"
+	"github.com/arifsetyawan/validra/src/internal/repository"
 )
 
 // PermissionService handles business logic for permission checking
 type PermissionService struct {
 	userRepo     domain.UserRepository
-	actionRepo   domain.ActionRepository
-	resourceRepo domain.ResourceRepository
+	resourceRepo repository.ResourceRepositoryInterface
 	roleRepo     domain.RoleRepository
 }
 
 // NewPermissionService creates a new PermissionService
 func NewPermissionService(
 	userRepo domain.UserRepository,
-	actionRepo domain.ActionRepository,
-	resourceRepo domain.ResourceRepository,
+	resourceRepo repository.ResourceRepositoryInterface,
 	roleRepo domain.RoleRepository,
 ) *PermissionService {
 	return &PermissionService{
 		userRepo:     userRepo,
-		actionRepo:   actionRepo,
 		resourceRepo: resourceRepo,
 		roleRepo:     roleRepo,
 	}
@@ -57,22 +55,19 @@ func (s *PermissionService) CheckPermission(ctx context.Context, username, actio
 	if err == nil {
 		// Try to find the resource
 		var resourceFound bool
-		for _, r := range resources {
+		for _, r := range *resources {
 			if r.Name == resourceName {
 				context["resourceId"] = r.ID
 				resourceFound = true
 
-				// Find matching actions for this resource
-				actions, err := s.actionRepo.GetByResourceID(ctx, r.ID)
-				if err == nil {
-					for _, a := range actions {
-						if a.Name == actionName {
-							context["actionId"] = a.ID
-							context["actionExists"] = true
-							break
-						}
+				for _, a := range r.ResourceActions {
+					if a.Name == actionName {
+						context["actionId"] = a.ID
+						context["actionExists"] = true
+						break
 					}
 				}
+
 				break
 			}
 		}

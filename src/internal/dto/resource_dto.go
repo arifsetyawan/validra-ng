@@ -9,18 +9,21 @@ import (
 
 // CreateResourceRequest represents the request payload for creating a resource
 type CreateResourceRequest struct {
-	Name                 string                 `json:"name" validate:"required" example:"Sample Resource"`
-	Description          string                 `json:"description" example:"This is a sample resource description"`
-	ResourceABACOptions  map[string]interface{} `json:"abac_options,omitempty" swaggertype:"array"`
-	ResourceReBACOptions map[string]interface{} `json:"rebac_options,omitempty" swaggertype:"array"`
+	Name                 string                   `json:"name" validate:"required" example:"Sample Resource"`
+	Description          string                   `json:"description" example:"This is a sample resource description"`
+	Actions              []string                 `json:"actions" example:"[\"read\", \"write\"]"`
+	ResourceABACOptions  []map[string]interface{} `json:"abac_options,omitempty" swaggertype:"array"`
+	ResourceReBACOptions []map[string]interface{} `json:"rebac_options,omitempty" swaggertype:"array"`
 }
 
 // UpdateResourceRequest represents the request payload for updating a resource
 type UpdateResourceRequest struct {
-	ID          string      `json:"id" validate:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
-	Name        string      `json:"name" validate:"required" example:"Updated Resource"`
-	Description string      `json:"description" example:"This is an updated resource description"`
-	Attributes  interface{} `json:"attributes,omitempty" swaggertype:"object"`
+	ID                   string                   `json:"id" validate:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Name                 string                   `json:"name" validate:"required" example:"Updated Resource"`
+	Description          string                   `json:"description" example:"This is an updated resource description"`
+	Actions              []map[string]interface{} `json:"actions" example:"[{\"id\": \": F1027702-B79B-4E29-A82C-5192DF9943AE\", \"name\": \"read\"},{\"id\": \"F1027702-B79B-4E29-A82C-5192DF9943AE\", \"name\": \"write\"}]"`
+	ResourceABACOptions  []map[string]interface{} `json:"abac_options,omitempty" swaggertype:"array"`
+	ResourceReBACOptions []map[string]interface{} `json:"rebac_options,omitempty" swaggertype:"array"`
 }
 
 // ResourceResponse represents the response model for a resource
@@ -28,6 +31,7 @@ type ResourceResponse struct {
 	ID                   string                   `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
 	Name                 string                   `json:"name" example:"Sample Resource"`
 	Description          string                   `json:"description" example:"This is a sample resource description"`
+	Actions              []map[string]interface{} `json:"actions" example:"[{\"id\": \": F1027702-B79B-4E29-A82C-5192DF9943AE\", \"name\": \"read\"},{\"id\": \"F1027702-B79B-4E29-A82C-5192DF9943AE\", \"name\": \"write\"}]"`
 	ResourceABACOptions  []map[string]interface{} `json:"abac_options,omitempty" swaggertype:"object"`
 	ResourceReBACOptions []map[string]interface{} `json:"rebac_options,omitempty" swaggertype:"object"`
 	CreatedAt            time.Time                `json:"created_at" example:"2025-04-19T12:00:00Z"`
@@ -43,8 +47,18 @@ type ListResourcesResponse struct {
 // ToResourceResponse converts a model.Resource to ResourceResponse
 func ToResourceResponse(r *model.Resource) ResourceResponse {
 
+	var actions []map[string]interface{}
 	var abacOptions []map[string]interface{}
 	var rebacOptions []map[string]interface{}
+
+	// Convert actions to []map[string]interface{}
+	for _, action := range r.ResourceActions {
+		// Convert struct to map using JSON marshaling and unmarshaling
+		actionBytes, _ := json.Marshal(action)
+		var actionMap map[string]interface{}
+		_ = json.Unmarshal(actionBytes, &actionMap)
+		actions = append(actions, actionMap)
+	}
 
 	// Convert ResourceABACOptions and ResourceReBACOptions to []map[string]interface{}
 	for _, option := range r.ResourceABACOptions {
@@ -67,6 +81,7 @@ func ToResourceResponse(r *model.Resource) ResourceResponse {
 		ID:                   r.ID,
 		Name:                 r.Name,
 		Description:          r.Description,
+		Actions:              actions,
 		ResourceABACOptions:  abacOptions,
 		ResourceReBACOptions: rebacOptions,
 		CreatedAt:            r.CreatedAt,
@@ -77,22 +92,27 @@ func ToResourceResponse(r *model.Resource) ResourceResponse {
 // ToResourceDomain converts a CreateResourceRequest to model.Resource
 func (r *CreateResourceRequest) ToResourceModel() *model.Resource {
 
-	// Convert r.ResourceABACOptions to model.Resource.ResourceABACOptions
+	// Convert actions to []model.Action
+	var actions []model.ResourceActions
+	for _, action := range r.Actions {
+		var actionModel model.ResourceActions
+		jsonData, _ := json.Marshal(action)
+		json.Unmarshal(jsonData, &actionModel)
+		actions = append(actions, actionModel)
+	}
 
+	// Convert r.ResourceABACOptions to model.Resource.ResourceABACOptions
 	var abacOptions []model.ResourceABACOptions
 	for _, value := range r.ResourceABACOptions {
 		var abacOption model.ResourceABACOptions
-
 		jsonData, _ := json.Marshal(value)
 		json.Unmarshal(jsonData, &abacOption)
-
 		abacOptions = append(abacOptions, abacOption)
 	}
 
 	// Convert r.ResourceReBACOptions to model.Resource.ResourceReBACOptions
 	var rebacOptions []model.ResourceReBACOptions
 	for _, value := range r.ResourceReBACOptions {
-
 		var rebacOption model.ResourceReBACOptions
 		jsonData, _ := json.Marshal(value)
 		json.Unmarshal(jsonData, &rebacOption)
@@ -102,6 +122,7 @@ func (r *CreateResourceRequest) ToResourceModel() *model.Resource {
 	return &model.Resource{
 		Name:                 r.Name,
 		Description:          r.Description,
+		ResourceActions:      actions,
 		ResourceABACOptions:  abacOptions,
 		ResourceReBACOptions: rebacOptions,
 	}
