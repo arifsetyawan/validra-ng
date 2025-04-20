@@ -1,7 +1,6 @@
 package dto
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/arifsetyawan/validra/src/internal/model"
@@ -9,18 +8,16 @@ import (
 
 // CreateActionRequest represents the request payload for creating an action
 type CreateActionRequest struct {
-	ResourceID  string      `json:"resource_id" validate:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
-	Name        string      `json:"name" validate:"required" example:"read"`
-	Description string      `json:"description" example:"Permission to read the resource"`
-	Attributes  interface{} `json:"attributes,omitempty" swaggertype:"object"`
+	ResourceID  string `json:"resource_id" validate:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Name        string `json:"name" validate:"required" example:"read"`
+	Description string `json:"description" example:"Permission to read the resource"`
 }
 
 // UpdateActionRequest represents the request payload for updating an action
 type UpdateActionRequest struct {
-	ResourceID  string      `json:"resource_id" validate:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
-	Name        string      `json:"name" validate:"required" example:"read"`
-	Description string      `json:"description" example:"Permission to read the resource"`
-	Attributes  interface{} `json:"attributes,omitempty" swaggertype:"object"`
+	ResourceID  string `json:"resource_id" validate:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Name        string `json:"name" validate:"required" example:"read"`
+	Description string `json:"description" example:"Permission to read the resource"`
 }
 
 // ActionResponse represents the response model for an action
@@ -29,7 +26,6 @@ type ActionResponse struct {
 	ResourceID  string           `json:"resource_id" example:"123e4567-e89b-12d3-a456-426614174000"`
 	Name        string           `json:"name" example:"read"`
 	Description string           `json:"description" example:"Permission to read the resource"`
-	Attributes  interface{}      `json:"attributes,omitempty" swaggertype:"object"`
 	CreatedAt   time.Time        `json:"created_at" example:"2025-04-19T12:00:00Z"`
 	UpdatedAt   time.Time        `json:"updated_at" example:"2025-04-19T12:00:00Z"`
 	Resource    ResourceResponse `json:"resource,omitempty"`
@@ -43,45 +39,26 @@ type ListActionsResponse struct {
 
 // ToActionResponse converts a domain.Action to ActionResponse
 func ToActionResponse(a *model.Action) ActionResponse {
-	var attributes interface{}
-	// Only unmarshal if there are attributes
-	if len(a.Attributes) > 0 {
-		if err := json.Unmarshal(a.Attributes, &attributes); err != nil {
-			// Fall back to raw bytes if unmarshaling fails
-			attributes = a.Attributes
-		}
-	}
-
 	return ActionResponse{
 		ID:          a.ID,
 		ResourceID:  a.ResourceID,
 		Name:        a.Name,
 		Description: a.Description,
-		Attributes:  attributes,
 		CreatedAt:   a.CreatedAt,
 		UpdatedAt:   a.UpdatedAt,
 	}
 }
 
 // ToActionResponse converts a domain.Action to ActionResponse
-func ToActionWithResourceResponse(a *model.Action, r *model.Resource) ActionResponse {
-	var attributes interface{}
-	// Only unmarshal if there are attributes
-	if len(a.Attributes) > 0 {
-		if err := json.Unmarshal(a.Attributes, &attributes); err != nil {
-			// Fall back to raw bytes if unmarshaling fails
-			attributes = a.Attributes
-		}
-	}
+func ToActionWithResourceResponse(a *model.Action) ActionResponse {
 
-	// convert ro to ResourceResponse
+	// Convert resource to ResourceResponse
 	resourceResponse := ResourceResponse{
-		ID:          r.ID,
-		Name:        r.Name,
-		Description: r.Description,
-		Attributes:  r.Attributes,
-		CreatedAt:   r.CreatedAt,
-		UpdatedAt:   r.UpdatedAt,
+		ID:          a.Resource.ID,
+		Name:        a.Resource.Name,
+		Description: a.Resource.Description,
+		CreatedAt:   a.Resource.CreatedAt,
+		UpdatedAt:   a.Resource.UpdatedAt,
 	}
 
 	return ActionResponse{
@@ -89,7 +66,6 @@ func ToActionWithResourceResponse(a *model.Action, r *model.Resource) ActionResp
 		ResourceID:  a.ResourceID,
 		Name:        a.Name,
 		Description: a.Description,
-		Attributes:  attributes,
 		CreatedAt:   a.CreatedAt,
 		UpdatedAt:   a.UpdatedAt,
 		Resource:    resourceResponse,
@@ -98,23 +74,10 @@ func ToActionWithResourceResponse(a *model.Action, r *model.Resource) ActionResp
 
 // ToActionDomain converts a CreateActionRequest to domain.Action
 func (r *CreateActionRequest) ToActionDomain() *model.Action {
-	var attributesBytes []byte
-	var err error
-
-	// Only marshal if there are attributes
-	if r.Attributes != nil {
-		attributesBytes, err = json.Marshal(r.Attributes)
-		if err != nil {
-			// Log error or handle it accordingly
-			attributesBytes = []byte("{}")
-		}
-	}
-
 	return &model.Action{
 		ResourceID:  r.ResourceID,
 		Name:        r.Name,
 		Description: r.Description,
-		Attributes:  attributesBytes,
 	}
 }
 
@@ -123,13 +86,4 @@ func (r *UpdateActionRequest) UpdateActionDomain(action *model.Action) {
 	action.ResourceID = r.ResourceID
 	action.Name = r.Name
 	action.Description = r.Description
-
-	// Only update attributes if provided
-	if r.Attributes != nil {
-		attributesBytes, err := json.Marshal(r.Attributes)
-		if err == nil {
-			action.Attributes = attributesBytes
-		}
-		// If error, we just don't update the attributes
-	}
 }

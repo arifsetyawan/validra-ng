@@ -4,18 +4,20 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/arifsetyawan/validra/src/internal/domain"
+	"github.com/arifsetyawan/validra/src/internal/model"
 )
 
 // CreateResourceRequest represents the request payload for creating a resource
 type CreateResourceRequest struct {
-	Name        string      `json:"name" validate:"required" example:"Sample Resource"`
-	Description string      `json:"description" example:"This is a sample resource description"`
-	Attributes  interface{} `json:"attributes,omitempty" swaggertype:"object"`
+	Name                 string                 `json:"name" validate:"required" example:"Sample Resource"`
+	Description          string                 `json:"description" example:"This is a sample resource description"`
+	ResourceABACOptions  map[string]interface{} `json:"abac_options,omitempty" swaggertype:"array"`
+	ResourceReBACOptions map[string]interface{} `json:"rebac_options,omitempty" swaggertype:"array"`
 }
 
 // UpdateResourceRequest represents the request payload for updating a resource
 type UpdateResourceRequest struct {
+	ID          string      `json:"id" validate:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
 	Name        string      `json:"name" validate:"required" example:"Updated Resource"`
 	Description string      `json:"description" example:"This is an updated resource description"`
 	Attributes  interface{} `json:"attributes,omitempty" swaggertype:"object"`
@@ -23,12 +25,13 @@ type UpdateResourceRequest struct {
 
 // ResourceResponse represents the response model for a resource
 type ResourceResponse struct {
-	ID          string      `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
-	Name        string      `json:"name" example:"Sample Resource"`
-	Description string      `json:"description" example:"This is a sample resource description"`
-	Attributes  interface{} `json:"attributes,omitempty" swaggertype:"object"`
-	CreatedAt   time.Time   `json:"created_at" example:"2025-04-19T12:00:00Z"`
-	UpdatedAt   time.Time   `json:"updated_at" example:"2025-04-19T12:00:00Z"`
+	ID                   string                   `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Name                 string                   `json:"name" example:"Sample Resource"`
+	Description          string                   `json:"description" example:"This is a sample resource description"`
+	ResourceABACOptions  []map[string]interface{} `json:"abac_options,omitempty" swaggertype:"object"`
+	ResourceReBACOptions []map[string]interface{} `json:"rebac_options,omitempty" swaggertype:"object"`
+	CreatedAt            time.Time                `json:"created_at" example:"2025-04-19T12:00:00Z"`
+	UpdatedAt            time.Time                `json:"updated_at" example:"2025-04-19T12:00:00Z"`
 }
 
 // ListResourcesResponse represents a paginated list of resources
@@ -37,59 +40,69 @@ type ListResourcesResponse struct {
 	Total     int                `json:"total" example:"10"`
 }
 
-// ToResourceResponse converts a domain.Resource to ResourceResponse
-func ToResourceResponse(r *domain.Resource) ResourceResponse {
-	var attributes interface{}
-	// Only unmarshal if there are attributes
-	if r.Attributes != nil && len(r.Attributes) > 0 {
-		if err := json.Unmarshal(r.Attributes, &attributes); err != nil {
-			// Fall back to raw bytes if unmarshaling fails
-			attributes = r.Attributes
-		}
+// ToResourceResponse converts a model.Resource to ResourceResponse
+func ToResourceResponse(r *model.Resource) ResourceResponse {
+
+	var abacOptions []map[string]interface{}
+	var rebacOptions []map[string]interface{}
+
+	// Convert ResourceABACOptions and ResourceReBACOptions to []map[string]interface{}
+	for _, option := range r.ResourceABACOptions {
+		// Convert struct to map using JSON marshaling and unmarshaling
+		optionBytes, _ := json.Marshal(option)
+		var optionMap map[string]interface{}
+		_ = json.Unmarshal(optionBytes, &optionMap)
+		abacOptions = append(abacOptions, optionMap)
+	}
+
+	for _, option := range r.ResourceReBACOptions {
+		// Convert struct to map using JSON marshaling and unmarshaling
+		optionBytes, _ := json.Marshal(option)
+		var optionMap map[string]interface{}
+		_ = json.Unmarshal(optionBytes, &optionMap)
+		rebacOptions = append(rebacOptions, optionMap)
 	}
 
 	return ResourceResponse{
-		ID:          r.ID,
-		Name:        r.Name,
-		Description: r.Description,
-		Attributes:  attributes,
-		CreatedAt:   r.CreatedAt,
-		UpdatedAt:   r.UpdatedAt,
+		ID:                   r.ID,
+		Name:                 r.Name,
+		Description:          r.Description,
+		ResourceABACOptions:  abacOptions,
+		ResourceReBACOptions: rebacOptions,
+		CreatedAt:            r.CreatedAt,
+		UpdatedAt:            r.UpdatedAt,
 	}
 }
 
-// ToResourceDomain converts a CreateResourceRequest to domain.Resource
-func (r *CreateResourceRequest) ToResourceDomain() *domain.Resource {
-	var attributesBytes []byte
-	var err error
+// ToResourceDomain converts a CreateResourceRequest to model.Resource
+func (r *CreateResourceRequest) ToResourceModel() *model.Resource {
 
-	// Only marshal if there are attributes
-	if r.Attributes != nil {
-		attributesBytes, err = json.Marshal(r.Attributes)
-		if err != nil {
-			// Log error or handle it accordingly
-			attributesBytes = []byte("{}")
-		}
+	// Convert r.ResourceABACOptions to model.Resource.ResourceABACOptions
+
+	var abacOptions []model.ResourceABACOptions
+	for _, value := range r.ResourceABACOptions {
+		var abacOption model.ResourceABACOptions
+
+		jsonData, _ := json.Marshal(value)
+		json.Unmarshal(jsonData, &abacOption)
+
+		abacOptions = append(abacOptions, abacOption)
 	}
 
-	return &domain.Resource{
-		Name:        r.Name,
-		Description: r.Description,
-		Attributes:  attributesBytes,
+	// Convert r.ResourceReBACOptions to model.Resource.ResourceReBACOptions
+	var rebacOptions []model.ResourceReBACOptions
+	for _, value := range r.ResourceReBACOptions {
+
+		var rebacOption model.ResourceReBACOptions
+		jsonData, _ := json.Marshal(value)
+		json.Unmarshal(jsonData, &rebacOption)
+		rebacOptions = append(rebacOptions, rebacOption)
 	}
-}
 
-// UpdateResourceDomain updates a domain.Resource with values from UpdateResourceRequest
-func (r *UpdateResourceRequest) UpdateResourceDomain(resource *domain.Resource) {
-	resource.Name = r.Name
-	resource.Description = r.Description
-
-	// Only update attributes if provided
-	if r.Attributes != nil {
-		attributesBytes, err := json.Marshal(r.Attributes)
-		if err == nil {
-			resource.Attributes = attributesBytes
-		}
-		// If error, we just don't update the attributes
+	return &model.Resource{
+		Name:                 r.Name,
+		Description:          r.Description,
+		ResourceABACOptions:  abacOptions,
+		ResourceReBACOptions: rebacOptions,
 	}
 }
