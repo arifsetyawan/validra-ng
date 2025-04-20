@@ -4,23 +4,24 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/arifsetyawan/validra/src/internal/domain"
+	"github.com/arifsetyawan/validra/src/internal/model"
+	"github.com/arifsetyawan/validra/src/internal/repository"
 )
 
 // ResourceService handles business logic for resources
 type ResourceService struct {
-	resourceRepo domain.ResourceRepository
+	resourceRepo repository.ResourceRepositoryInterface
 }
 
 // NewResourceService creates a new ResourceService
-func NewResourceService(resourceRepo domain.ResourceRepository) *ResourceService {
+func NewResourceService(resourceRepo repository.ResourceRepositoryInterface) *ResourceService {
 	return &ResourceService{
 		resourceRepo: resourceRepo,
 	}
 }
 
 // CreateResource creates a new resource
-func (s *ResourceService) CreateResource(ctx context.Context, resource *domain.Resource) error {
+func (s *ResourceService) CreateResource(ctx context.Context, resource *model.Resource) error {
 	if resource.Name == "" {
 		return fmt.Errorf("resource name is required")
 	}
@@ -29,12 +30,12 @@ func (s *ResourceService) CreateResource(ctx context.Context, resource *domain.R
 }
 
 // GetResourceByID retrieves a resource by ID
-func (s *ResourceService) GetResourceByID(ctx context.Context, id string) (*domain.Resource, error) {
+func (s *ResourceService) GetResourceByID(ctx context.Context, id string) (*model.Resource, error) {
 	return s.resourceRepo.GetByID(ctx, id)
 }
 
 // ListResources retrieves a paginated list of resources
-func (s *ResourceService) ListResources(ctx context.Context, limit, offset int) ([]*domain.Resource, error) {
+func (s *ResourceService) ListResources(ctx context.Context, limit, offset int) (*[]model.Resource, error) {
 	if limit <= 0 {
 		limit = 10 // Default limit
 	}
@@ -42,7 +43,7 @@ func (s *ResourceService) ListResources(ctx context.Context, limit, offset int) 
 }
 
 // UpdateResource updates an existing resource
-func (s *ResourceService) UpdateResource(ctx context.Context, resource *domain.Resource) error {
+func (s *ResourceService) UpdateResource(ctx context.Context, resource *model.Resource) error {
 	if resource.ID == "" {
 		return fmt.Errorf("resource ID is required")
 	}
@@ -54,11 +55,11 @@ func (s *ResourceService) UpdateResource(ctx context.Context, resource *domain.R
 }
 
 // DeleteResource deletes a resource by ID
-func (s *ResourceService) DeleteResource(ctx context.Context, id string) (*domain.Resource, error) {
+func (s *ResourceService) DeleteResource(ctx context.Context, id string) (*model.Resource, error) {
 	return s.resourceRepo.Delete(ctx, id)
 }
 
 // ResourceRepository returns the resource repository
-func (s *ResourceService) ResourceRepository() domain.ResourceRepository {
+func (s *ResourceService) ResourceRepository() repository.ResourceRepositoryInterface {
 	return s.resourceRepo
 }

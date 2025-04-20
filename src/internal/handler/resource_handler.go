@@ -52,7 +52,7 @@ func (h *ResourceHandler) CreateResource(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	resource := req.ToResourceDomain()
+	resource := req.ToResourceModel()
 	if err := h.resourceService.CreateResource(c.Request().Context(), resource); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -114,10 +114,10 @@ func (h *ResourceHandler) ListResources(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	// Convert domain models to response DTOs
-	resourceResponses := make([]dto.ResourceResponse, len(resources))
-	for i, r := range resources {
-		resourceResponses[i] = dto.ToResourceResponse(r)
+	// Convert models to response DTOs
+	resourceResponses := make([]dto.ResourceResponse, len(*resources))
+	for i, r := range *resources {
+		resourceResponses[i] = dto.ToResourceResponse(&r)
 	}
 
 	response := dto.ListResourcesResponse{
@@ -161,9 +161,6 @@ func (h *ResourceHandler) UpdateResource(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "Resource not found"})
 	}
-
-	// Update the resource with request data
-	req.UpdateResourceDomain(resource)
 
 	if err := h.resourceService.UpdateResource(c.Request().Context(), resource); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
