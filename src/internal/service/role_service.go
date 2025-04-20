@@ -4,23 +4,24 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/arifsetyawan/validra/src/internal/domain"
+	"github.com/arifsetyawan/validra/src/internal/model"
+	"github.com/arifsetyawan/validra/src/internal/repository"
 )
 
 // RoleService handles business logic for roles
 type RoleService struct {
-	roleRepo domain.RoleRepository
+	roleRepo repository.RoleRepositoryInterface
 }
 
 // NewRoleService creates a new RoleService
-func NewRoleService(roleRepo domain.RoleRepository) *RoleService {
+func NewRoleService(roleRepo repository.RoleRepositoryInterface) *RoleService {
 	return &RoleService{
 		roleRepo: roleRepo,
 	}
 }
 
 // CreateRole creates a new role
-func (s *RoleService) CreateRole(ctx context.Context, role *domain.Role) error {
+func (s *RoleService) CreateRole(ctx context.Context, role *model.Role) error {
 	if role.Name == "" {
 		return fmt.Errorf("role name is required")
 	}
@@ -29,12 +30,12 @@ func (s *RoleService) CreateRole(ctx context.Context, role *domain.Role) error {
 }
 
 // GetRoleByID retrieves a role by ID
-func (s *RoleService) GetRoleByID(ctx context.Context, id string) (*domain.Role, error) {
+func (s *RoleService) GetRoleByID(ctx context.Context, id string) (*model.Role, error) {
 	return s.roleRepo.GetByID(ctx, id)
 }
 
 // ListRoles retrieves a paginated list of roles
-func (s *RoleService) ListRoles(ctx context.Context, limit, offset int) ([]*domain.Role, error) {
+func (s *RoleService) ListRoles(ctx context.Context, limit, offset int) (*[]model.Role, error) {
 	if limit <= 0 {
 		limit = 10 // Default limit
 	}
@@ -42,7 +43,7 @@ func (s *RoleService) ListRoles(ctx context.Context, limit, offset int) ([]*doma
 }
 
 // UpdateRole updates an existing role
-func (s *RoleService) UpdateRole(ctx context.Context, role *domain.Role) error {
+func (s *RoleService) UpdateRole(ctx context.Context, role *model.Role) error {
 	if role.Name == "" {
 		return fmt.Errorf("role name is required")
 	}
@@ -57,11 +58,11 @@ func (s *RoleService) UpdateRole(ctx context.Context, role *domain.Role) error {
 }
 
 // DeleteRole deletes a role by ID
-func (s *RoleService) DeleteRole(ctx context.Context, id string) (*domain.Role, error) {
+func (s *RoleService) DeleteRole(ctx context.Context, id string) (*model.Role, error) {
 	return s.roleRepo.Delete(ctx, id)
 }
 
 // RoleRepository returns the role repository
-func (s *RoleService) RoleRepository() domain.RoleRepository {
+func (s *RoleService) RoleRepository() repository.RoleRepositoryInterface {
 	return s.roleRepo
 }

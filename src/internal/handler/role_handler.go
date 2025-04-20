@@ -115,8 +115,8 @@ func (h *RoleHandler) ListRoles(c echo.Context) error {
 	}
 
 	// Convert domain models to response DTOs
-	roleResponses := make([]dto.RoleResponse, len(roles))
-	for i, r := range roles {
+	roleResponses := make([]dto.RoleResponse, len(*roles))
+	for i, r := range *roles {
 		roleResponses[i] = dto.ToRoleResponse(r)
 	}
 

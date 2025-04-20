@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/arifsetyawan/validra/src/internal/domain"
+	"github.com/arifsetyawan/validra/src/internal/model"
 	"github.com/arifsetyawan/validra/src/pkg/database"
 	"github.com/google/uuid"
 )
@@ -15,49 +15,23 @@ type RoleRepository struct {
 	db *database.PostgresDB
 }
 
+type RoleRepositoryInterface interface {
+	Create(ctx context.Context, role *model.Role) error
+	GetByID(ctx context.Context, id string) (*model.Role, error)
+	List(ctx context.Context, limit, offset int) (*[]model.Role, error)
+	Update(ctx context.Context, role *model.Role) error
+	Delete(ctx context.Context, id string) (*model.Role, error)
+}
+
 // NewGormRoleRepository creates a new GORM repository for roles
-func NewRoleRepository(db *database.PostgresDB) domain.RoleRepository {
+func NewRoleRepository(db *database.PostgresDB) RoleRepositoryInterface {
 	return &RoleRepository{
 		db: db,
 	}
 }
 
-// Role is the GORM model for roles
-type Role struct {
-	ID          string `gorm:"primaryKey"`
-	Name        string `gorm:"not null"`
-	Description string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time `gorm:"index"`
-}
-
-// toDomain converts a GORM model to a domain model
-func (r *Role) toDomain() *domain.Role {
-	return &domain.Role{
-		ID:          r.ID,
-		Name:        r.Name,
-		Description: r.Description,
-		CreatedAt:   r.CreatedAt,
-		UpdatedAt:   r.UpdatedAt,
-		DeletedAt:   r.DeletedAt,
-	}
-}
-
-// fromDomain converts a domain model to a GORM model
-func roleFromDomain(r *domain.Role) *Role {
-	return &Role{
-		ID:          r.ID,
-		Name:        r.Name,
-		Description: r.Description,
-		CreatedAt:   r.CreatedAt,
-		UpdatedAt:   r.UpdatedAt,
-		DeletedAt:   r.DeletedAt,
-	}
-}
-
 // Create inserts a new role into the database
-func (r *RoleRepository) Create(ctx context.Context, role *domain.Role) error {
+func (r *RoleRepository) Create(ctx context.Context, role *model.Role) error {
 	// Generate a new UUID if not provided
 	if role.ID == "" {
 		role.ID = uuid.New().String()
@@ -68,8 +42,7 @@ func (r *RoleRepository) Create(ctx context.Context, role *domain.Role) error {
 	role.CreatedAt = now
 	role.UpdatedAt = now
 
-	gormRole := roleFromDomain(role)
-	result := r.db.DB.WithContext(ctx).Create(gormRole)
+	result := r.db.DB.WithContext(ctx).Create(role)
 	if result.Error != nil {
 		return fmt.Errorf("failed to create role: %w", result.Error)
 	}
@@ -78,39 +51,33 @@ func (r *RoleRepository) Create(ctx context.Context, role *domain.Role) error {
 }
 
 // GetByID retrieves a role by ID
-func (r *RoleRepository) GetByID(ctx context.Context, id string) (*domain.Role, error) {
-	var role Role
+func (r *RoleRepository) GetByID(ctx context.Context, id string) (*model.Role, error) {
+	var role model.Role
 	result := r.db.DB.WithContext(ctx).First(&role, "id = ?", id)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to get role: %w", result.Error)
 	}
 
-	return role.toDomain(), nil
+	return &role, nil
 }
 
 // List retrieves a paginated list of roles
-func (r *RoleRepository) List(ctx context.Context, limit, offset int) ([]*domain.Role, error) {
-	var roles []Role
+func (r *RoleRepository) List(ctx context.Context, limit, offset int) (*[]model.Role, error) {
+	var roles []model.Role
 	result := r.db.DB.WithContext(ctx).Limit(limit).Offset(offset).Find(&roles)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to list roles: %w", result.Error)
 	}
 
-	domainRoles := make([]*domain.Role, len(roles))
-	for i, role := range roles {
-		domainRoles[i] = role.toDomain()
-	}
-
-	return domainRoles, nil
+	return &roles, nil
 }
 
 // Update updates a role in the database
-func (r *RoleRepository) Update(ctx context.Context, role *domain.Role) error {
+func (r *RoleRepository) Update(ctx context.Context, role *model.Role) error {
 	// Update the timestamp
 	role.UpdatedAt = time.Now()
 
-	gormRole := roleFromDomain(role)
-	result := r.db.DB.WithContext(ctx).Save(gormRole)
+	result := r.db.DB.WithContext(ctx).Save(role)
 	if result.Error != nil {
 		return fmt.Errorf("failed to update role: %w", result.Error)
 	}
@@ -123,9 +90,9 @@ func (r *RoleRepository) Update(ctx context.Context, role *domain.Role) error {
 }
 
 // Delete performs a soft delete on a role and returns the deleted role
-func (r *RoleRepository) Delete(ctx context.Context, id string) (*domain.Role, error) {
+func (r *RoleRepository) Delete(ctx context.Context, id string) (*model.Role, error) {
 	// First retrieve the role to return it after deletion
-	var role Role
+	var role model.Role
 	getResult := r.db.DB.WithContext(ctx).First(&role, "id = ?", id)
 	if getResult.Error != nil {
 		return nil, fmt.Errorf("failed to get role: %w", getResult.Error)
@@ -133,7 +100,7 @@ func (r *RoleRepository) Delete(ctx context.Context, id string) (*domain.Role, e
 
 	// Perform soft delete
 	now := time.Now()
-	result := r.db.DB.WithContext(ctx).Model(&Role{}).Where("id = ?", id).Update("deleted_at", now)
+	result := r.db.DB.WithContext(ctx).Model(&role).Where("id = ?", id).Update("deleted_at", now)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to soft delete role: %w", result.Error)
 	}
@@ -145,5 +112,5 @@ func (r *RoleRepository) Delete(ctx context.Context, id string) (*domain.Role, e
 	// Update the retrieved role with deletion time
 	role.DeletedAt = &now
 
-	return role.toDomain(), nil
+	return &role, nil
 }

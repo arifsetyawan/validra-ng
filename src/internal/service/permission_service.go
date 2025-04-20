@@ -11,14 +11,14 @@ import (
 type PermissionService struct {
 	userRepo     domain.UserRepository
 	resourceRepo repository.ResourceRepositoryInterface
-	roleRepo     domain.RoleRepository
+	roleRepo     repository.RoleRepositoryInterface
 }
 
 // NewPermissionService creates a new PermissionService
 func NewPermissionService(
 	userRepo domain.UserRepository,
 	resourceRepo repository.ResourceRepositoryInterface,
-	roleRepo domain.RoleRepository,
+	roleRepo repository.RoleRepositoryInterface,
 ) *PermissionService {
 	return &PermissionService{
 		userRepo:     userRepo,

@@ -21,14 +21,14 @@ import "context"
 // 	Delete(ctx context.Context, id string) (*Action, error)
 // }
 
-// RoleRepository defines the methods for Role data access
-type RoleRepository interface {
-	Create(ctx context.Context, role *Role) error
-	GetByID(ctx context.Context, id string) (*Role, error)
-	List(ctx context.Context, limit, offset int) ([]*Role, error)
-	Update(ctx context.Context, role *Role) error
-	Delete(ctx context.Context, id string) (*Role, error)
-}
+// // RoleRepository defines the methods for Role data access
+// type RoleRepository interface {
+// 	Create(ctx context.Context, role *Role) error
+// 	GetByID(ctx context.Context, id string) (*Role, error)
+// 	List(ctx context.Context, limit, offset int) ([]*Role, error)
+// 	Update(ctx context.Context, role *Role) error
+// 	Delete(ctx context.Context, id string) (*Role, error)
+// }
 
 // UserRepository defines the methods for User data access
 type UserRepository interface {

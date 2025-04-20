@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/arifsetyawan/validra/src/config"
-	"github.com/arifsetyawan/validra/src/internal/domain"
 	"github.com/arifsetyawan/validra/src/internal/middleware"
 	"github.com/arifsetyawan/validra/src/internal/repository"
 	"github.com/arifsetyawan/validra/src/internal/router"
@@ -47,10 +46,9 @@ func main() {
 	log.Info("Configuration loaded")
 
 	// Initialize database repositories
-	var resourceRepo domain.ResourceRepository
-	var userRepo domain.UserRepository
-	var roleRepo domain.RoleRepository
-	var actionRepo domain.ActionRepository
+	var resourceRepo repository.ResourceRepositoryInterface
+	var userRepo repository.UserRepositoryInterface
+	var roleRepo repository.RoleRepositoryInterface
 
 	// Initialize PostgreSQL with GORM
 	db, err := database.NewPostgresDB(
@@ -79,7 +77,6 @@ func main() {
 	resourceRepo = repository.NewResourceRepository(db)
 	userRepo = repository.NewUserRepository(db)
 	roleRepo = repository.NewRoleRepository(db)
-	actionRepo = repository.NewActionRepository(db)
 
 	// Initialize Echo
 	e := echo.New()

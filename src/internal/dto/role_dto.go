@@ -3,7 +3,7 @@ package dto
 import (
 	"time"
 
-	"github.com/arifsetyawan/validra/src/internal/domain"
+	"github.com/arifsetyawan/validra/src/internal/model"
 )
 
 // CreateRoleRequest is the DTO for creating a new role
@@ -33,22 +33,22 @@ type ListRolesResponse struct {
 	Total int            `json:"total" example:"10"`
 }
 
-// ToRoleDomain converts a CreateRoleRequest to domain.Role
-func (r *CreateRoleRequest) ToRoleDomain() *domain.Role {
-	return &domain.Role{
+// ToRoleDomain converts a CreateRoleRequest to model.Role
+func (r *CreateRoleRequest) ToRoleDomain() *model.Role {
+	return &model.Role{
 		Name:        r.Name,
 		Description: r.Description,
 	}
 }
 
-// UpdateRoleDomain updates a domain.Role with values from UpdateRoleRequest
-func (r *UpdateRoleRequest) UpdateRoleDomain(role *domain.Role) {
+// UpdateRoleDomain updates a model.Role with values from UpdateRoleRequest
+func (r *UpdateRoleRequest) UpdateRoleDomain(role *model.Role) {
 	role.Name = r.Name
 	role.Description = r.Description
 }
 
 // ToRoleResponse converts a domain.Role to RoleResponse
-func ToRoleResponse(role *domain.Role) RoleResponse {
+func ToRoleResponse(role *model.Role) RoleResponse {
 	return RoleResponse{
 		ID:          role.ID,
 		Name:        role.Name,
