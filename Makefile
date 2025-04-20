@@ -9,6 +9,8 @@ MODULE_PATH=github.com/arifsetyawan/validra
 # Directories
 SRC_DIR=./src
 BUILD_DIR=./build
+CMD_DIR=./src/cmd
+HTTP_CMD = $(CMD_DIR)/http
 
 # Build the application
 build:
@@ -17,7 +19,7 @@ build:
 
 # Run the application
 run:
-	@go run $(SRC_DIR)
+	@go run $(HTTP_CMD)
 
 # Test the application
 test:
@@ -39,7 +41,7 @@ deps:
 # Update swagger documentation
 swagger:
 	@echo "Updating Swagger documentation..."
-	@swag init -g src/main.go
+	@swag init -g $(HTTP_CMD)/main.go
 
 # Format code
 fmt:
@@ -54,7 +56,7 @@ vet:
 # Run migrations
 migrate:
 	@echo "Running migrations..."
-	@go run $(SRC_DIR)/cmd/migrate/main.go
+	@go run $(CMD_DIR)/migrate/main.go
 
 # Generate and install dependencies
 install: deps build

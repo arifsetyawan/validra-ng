@@ -37,7 +37,7 @@ func NewPostgresDB(host, user, password, dbname string, port int, sslmode string
 	sqlDB.SetMaxIdleConns(10)
 
 	// SetMaxOpenConns sets the maximum number of open connections to the database
-	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetMaxOpenConns(25)
 
 	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused
 	sqlDB.SetConnMaxLifetime(time.Hour)
@@ -66,6 +66,7 @@ func (p *PostgresDB) Migrate() error {
 		Attributes  []byte
 		CreatedAt   time.Time
 		UpdatedAt   time.Time
+		DeletedAt   *time.Time `gorm:"index"`
 	}
 
 	type Action struct {

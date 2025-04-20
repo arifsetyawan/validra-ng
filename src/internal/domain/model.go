@@ -15,17 +15,17 @@ type Resource struct {
 	DeletedAt   *time.Time `json:"deletedAt,omitempty"`
 }
 
-// Action represents an operation that can be performed on a resource
-type Action struct {
-	ID          string     `json:"id"`
-	ResourceID  string     `json:"resource_id"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Attributes  []byte     `json:"attributes"` // JSON serialized attributes
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	DeletedAt   *time.Time `json:"deletedAt,omitempty"`
-}
+// // Action represents an operation that can be performed on a resource
+// type Action struct {
+// 	ID          string     `json:"id"`
+// 	ResourceID  string     `json:"resource_id"`
+// 	Name        string     `json:"name"`
+// 	Description string     `json:"description"`
+// 	Attributes  []byte     `json:"attributes"` // JSON serialized attributes
+// 	CreatedAt   time.Time  `json:"created_at"`
+// 	UpdatedAt   time.Time  `json:"updated_at"`
+// 	DeletedAt   *time.Time `json:"deletedAt,omitempty"`
+// }
 
 // Role represents a role in the system
 type Role struct {

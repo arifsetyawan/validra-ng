@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/arifsetyawan/validra/src/internal/delivery/http/handler"
+	"github.com/arifsetyawan/validra/src/internal/handler"
 	"github.com/arifsetyawan/validra/src/internal/service"
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"

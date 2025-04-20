@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/arifsetyawan/validra/src/config"
-	"github.com/arifsetyawan/validra/src/internal/delivery/http/middleware"
 	"github.com/arifsetyawan/validra/src/internal/domain"
+	"github.com/arifsetyawan/validra/src/internal/middleware"
 	"github.com/arifsetyawan/validra/src/internal/repository"
 	"github.com/arifsetyawan/validra/src/internal/router"
 	"github.com/arifsetyawan/validra/src/internal/service"

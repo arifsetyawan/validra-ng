@@ -3,23 +3,23 @@ package domain
 import "context"
 
 // ResourceRepository defines the methods for Resource data access
-type ResourceRepository interface {
-	Create(ctx context.Context, resource *Resource) error
-	GetByID(ctx context.Context, id string) (*Resource, error)
-	List(ctx context.Context, limit, offset int) ([]*Resource, error)
-	Update(ctx context.Context, resource *Resource) error
-	Delete(ctx context.Context, id string) (*Resource, error)
-}
+// type ResourceRepository interface {
+// 	Create(ctx context.Context, resource *Resource) error
+// 	GetByID(ctx context.Context, id string) (*Resource, error)
+// 	List(ctx context.Context, limit, offset int) ([]*Resource, error)
+// 	Update(ctx context.Context, resource *Resource) error
+// 	Delete(ctx context.Context, id string) (*Resource, error)
+// }
 
-// ActionRepository defines the methods for Action data access
-type ActionRepository interface {
-	Create(ctx context.Context, action *Action) error
-	GetByID(ctx context.Context, id string) (*Action, error)
-	GetByResourceID(ctx context.Context, resourceID string) ([]*Action, error)
-	List(ctx context.Context, limit, offset int) ([]*Action, error)
-	Update(ctx context.Context, action *Action) error
-	Delete(ctx context.Context, id string) (*Action, error)
-}
+// // ActionRepository defines the methods for Action data access
+// type ActionRepository interface {
+// 	Create(ctx context.Context, action *Action) error
+// 	GetByID(ctx context.Context, id string) (*Action, error)
+// 	GetByResourceID(ctx context.Context, resourceID string) ([]*Action, error)
+// 	List(ctx context.Context, limit, offset int) ([]*Action, error)
+// 	Update(ctx context.Context, action *Action) error
+// 	Delete(ctx context.Context, id string) (*Action, error)
+// }
 
 // RoleRepository defines the methods for Role data access
 type RoleRepository interface {

@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/arifsetyawan/validra/src/internal/delivery/http/dto"
+	"github.com/arifsetyawan/validra/src/internal/dto"
 	"github.com/arifsetyawan/validra/src/internal/service"
 	"github.com/labstack/echo/v4"
 )
