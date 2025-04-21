@@ -89,10 +89,9 @@ func main() {
 	resourceService := service.NewResourceService(resourceRepo)
 	userService := service.NewUserService(userRepo)
 	roleService := service.NewRoleService(roleRepo)
-	actionService := service.NewActionService(actionRepo, resourceRepo)
 
 	// Register routes
-	router.Register(e, resourceService, userService, roleService, actionService)
+	router.Register(e, resourceService, userService, roleService)
 	log.Info("Routes registered")
 
 	// Setup Swagger

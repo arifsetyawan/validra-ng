@@ -3,20 +3,19 @@ package service
 import (
 	"context"
 
-	"github.com/arifsetyawan/validra/src/internal/domain"
 	"github.com/arifsetyawan/validra/src/internal/repository"
 )
 
 // PermissionService handles business logic for permission checking
 type PermissionService struct {
-	userRepo     domain.UserRepository
+	userRepo     repository.UserRepositoryInterface
 	resourceRepo repository.ResourceRepositoryInterface
 	roleRepo     repository.RoleRepositoryInterface
 }
 
 // NewPermissionService creates a new PermissionService
 func NewPermissionService(
-	userRepo domain.UserRepository,
+	userRepo repository.UserRepositoryInterface,
 	resourceRepo repository.ResourceRepositoryInterface,
 	roleRepo repository.RoleRepositoryInterface,
 ) *PermissionService {

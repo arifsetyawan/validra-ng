@@ -4,23 +4,24 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/arifsetyawan/validra/src/internal/domain"
+	"github.com/arifsetyawan/validra/src/internal/model"
+	"github.com/arifsetyawan/validra/src/internal/repository"
 )
 
 // UserService handles business logic for users
 type UserService struct {
-	userRepo domain.UserRepository
+	userRepo repository.UserRepositoryInterface
 }
 
 // NewUserService creates a new UserService
-func NewUserService(userRepo domain.UserRepository) *UserService {
+func NewUserService(userRepo repository.UserRepositoryInterface) *UserService {
 	return &UserService{
 		userRepo: userRepo,
 	}
 }
 
 // CreateUser creates a new user
-func (s *UserService) CreateUser(ctx context.Context, user *domain.User) error {
+func (s *UserService) CreateUser(ctx context.Context, user *model.User) error {
 	if user.Username == "" {
 		return fmt.Errorf("username is required")
 	}
@@ -35,17 +36,17 @@ func (s *UserService) CreateUser(ctx context.Context, user *domain.User) error {
 }
 
 // GetUserByID retrieves a user by ID
-func (s *UserService) GetUserByID(ctx context.Context, id string) (*domain.User, error) {
+func (s *UserService) GetUserByID(ctx context.Context, id string) (*model.User, error) {
 	return s.userRepo.GetByID(ctx, id)
 }
 
 // GetUserByUsername retrieves a user by username
-func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*domain.User, error) {
+func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
 	return s.userRepo.GetByUsername(ctx, username)
 }
 
 // ListUsers retrieves a paginated list of users
-func (s *UserService) ListUsers(ctx context.Context, limit, offset int) ([]*domain.User, error) {
+func (s *UserService) ListUsers(ctx context.Context, limit, offset int) (*[]model.User, error) {
 	if limit <= 0 {
 		limit = 10 // Default limit
 	}
@@ -53,7 +54,7 @@ func (s *UserService) ListUsers(ctx context.Context, limit, offset int) ([]*doma
 }
 
 // UpdateUser updates an existing user
-func (s *UserService) UpdateUser(ctx context.Context, user *domain.User) error {
+func (s *UserService) UpdateUser(ctx context.Context, user *model.User) error {
 	if user.ID == "" {
 		return fmt.Errorf("user ID is required")
 	}
@@ -71,11 +72,11 @@ func (s *UserService) UpdateUser(ctx context.Context, user *domain.User) error {
 }
 
 // DeleteUser deletes a user by ID
-func (s *UserService) DeleteUser(ctx context.Context, id string) (*domain.User, error) {
+func (s *UserService) DeleteUser(ctx context.Context, id string) (*model.User, error) {
 	return s.userRepo.Delete(ctx, id)
 }
 
 // UserRepository returns the user repository
-func (s *UserService) UserRepository() domain.UserRepository {
+func (s *UserService) UserRepository() repository.UserRepositoryInterface {
 	return s.userRepo
 }

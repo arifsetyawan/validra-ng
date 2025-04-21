@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/arifsetyawan/validra/src/internal/domain"
+	"github.com/arifsetyawan/validra/src/internal/model"
 )
 
 // CreateUserRequest represents the request payload for creating a user
@@ -34,8 +34,8 @@ type ListUsersResponse struct {
 	Total int            `json:"total" example:"10"`
 }
 
-// ToUserResponse converts a domain.User to UserResponse
-func ToUserResponse(u *domain.User) UserResponse {
+// ToUserResponse converts a model.User to UserResponse
+func ToUserResponse(u *model.User) UserResponse {
 	var attributes interface{}
 	if u.Attributes != nil && len(u.Attributes) > 0 {
 		json.Unmarshal(u.Attributes, &attributes)
@@ -51,20 +51,20 @@ func ToUserResponse(u *domain.User) UserResponse {
 }
 
 // ToUserDomain converts a CreateUserRequest to domain.User
-func (r *CreateUserRequest) ToUserDomain() *domain.User {
+func (r *CreateUserRequest) ToUserDomain() *model.User {
 	var attributesBytes []byte
 	if r.Attributes != nil {
 		attributesBytes, _ = json.Marshal(r.Attributes)
 	}
 
-	return &domain.User{
+	return &model.User{
 		Username:   r.Username,
 		Attributes: attributesBytes,
 	}
 }
 
 // UpdateUserDomain updates a domain.User with values from UpdateUserRequest
-func (r *UpdateUserRequest) UpdateUserDomain(user *domain.User) {
+func (r *UpdateUserRequest) UpdateUserDomain(user *model.User) {
 	user.Username = r.Username
 
 	if r.Attributes != nil {

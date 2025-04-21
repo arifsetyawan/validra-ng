@@ -115,9 +115,9 @@ func (h *UserHandler) ListUsers(c echo.Context) error {
 	}
 
 	// Convert domain models to response DTOs
-	userResponses := make([]dto.UserResponse, len(users))
-	for i, u := range users {
-		userResponses[i] = dto.ToUserResponse(u)
+	userResponses := make([]dto.UserResponse, len(*users))
+	for i, u := range *users {
+		userResponses[i] = dto.ToUserResponse(&u)
 	}
 
 	response := dto.ListUsersResponse{
