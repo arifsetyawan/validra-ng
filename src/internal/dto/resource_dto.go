@@ -12,30 +12,30 @@ type CreateResourceRequest struct {
 	Name                 string                   `json:"name" validate:"required" example:"Sample Resource"`
 	Description          string                   `json:"description" example:"This is a sample resource description"`
 	Actions              []string                 `json:"actions" example:"[\"read\", \"write\"]"`
-	ResourceABACOptions  []map[string]interface{} `json:"abac_options,omitempty" swaggertype:"array"`
-	ResourceReBACOptions []map[string]interface{} `json:"rebac_options,omitempty" swaggertype:"array"`
+	ResourceABACOptions  []map[string]interface{} `json:"abac_options,omitempty" swaggertype:"array,object"`
+	ResourceReBACOptions []map[string]interface{} `json:"rebac_options,omitempty" swaggertype:"array,object"`
 }
 
 // UpdateResourceRequest represents the request payload for updating a resource
 type UpdateResourceRequest struct {
-	ID                   string                   `json:"id" validate:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
-	Name                 string                   `json:"name" validate:"required" example:"Updated Resource"`
-	Description          string                   `json:"description" example:"This is an updated resource description"`
-	Actions              []map[string]interface{} `json:"actions" example:"[{\"id\": \": F1027702-B79B-4E29-A82C-5192DF9943AE\", \"name\": \"read\"},{\"id\": \"F1027702-B79B-4E29-A82C-5192DF9943AE\", \"name\": \"write\"}]"`
-	ResourceABACOptions  []map[string]interface{} `json:"abac_options,omitempty" swaggertype:"array"`
-	ResourceReBACOptions []map[string]interface{} `json:"rebac_options,omitempty" swaggertype:"array"`
+	ID                   string        `json:"id" validate:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Name                 string        `json:"name" validate:"required" example:"Updated Resource"`
+	Description          string        `json:"description" example:"This is an updated resource description"`
+	Actions              []interface{} `json:"actions" swaggertype:"array,object"`
+	ResourceABACOptions  []interface{} `json:"abac_options,omitempty" swaggertype:"array,object"`
+	ResourceReBACOptions []interface{} `json:"rebac_options,omitempty" swaggertype:"array,object"`
 }
 
 // ResourceResponse represents the response model for a resource
 type ResourceResponse struct {
-	ID                   string                   `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
-	Name                 string                   `json:"name" example:"Sample Resource"`
-	Description          string                   `json:"description" example:"This is a sample resource description"`
-	Actions              []map[string]interface{} `json:"actions" example:"[{\"id\": \": F1027702-B79B-4E29-A82C-5192DF9943AE\", \"name\": \"read\"},{\"id\": \"F1027702-B79B-4E29-A82C-5192DF9943AE\", \"name\": \"write\"}]"`
-	ResourceABACOptions  []map[string]interface{} `json:"abac_options,omitempty" swaggertype:"object"`
-	ResourceReBACOptions []map[string]interface{} `json:"rebac_options,omitempty" swaggertype:"object"`
-	CreatedAt            time.Time                `json:"created_at" example:"2025-04-19T12:00:00Z"`
-	UpdatedAt            time.Time                `json:"updated_at" example:"2025-04-19T12:00:00Z"`
+	ID                   string        `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Name                 string        `json:"name" example:"Sample Resource"`
+	Description          string        `json:"description" example:"This is a sample resource description"`
+	Actions              []interface{} `json:"actions" swaggertype:"array,object"`
+	ResourceABACOptions  []interface{} `json:"abac_options,omitempty" swaggertype:"array,object"`
+	ResourceReBACOptions []interface{} `json:"rebac_options,omitempty" swaggertype:"array,object"`
+	CreatedAt            time.Time     `json:"created_at" example:"2025-04-19T12:00:00Z"`
+	UpdatedAt            time.Time     `json:"updated_at" example:"2025-04-19T12:00:00Z"`
 }
 
 // ListResourcesResponse represents a paginated list of resources
@@ -47,24 +47,23 @@ type ListResourcesResponse struct {
 // ToResourceResponse converts a model.Resource to ResourceResponse
 func ToResourceResponse(r *model.Resource) ResourceResponse {
 
-	var actions []map[string]interface{}
-	var abacOptions []map[string]interface{}
-	var rebacOptions []map[string]interface{}
+	var actions []interface{}
+	var abacOptions []interface{}
+	var rebacOptions []interface{}
 
-	// Convert actions to []map[string]interface{}
+	// Convert to []interface{}
 	for _, action := range r.ResourceActions {
 		// Convert struct to map using JSON marshaling and unmarshaling
 		actionBytes, _ := json.Marshal(action)
-		var actionMap map[string]interface{}
+		var actionMap []interface{}
 		_ = json.Unmarshal(actionBytes, &actionMap)
 		actions = append(actions, actionMap)
 	}
 
-	// Convert ResourceABACOptions and ResourceReBACOptions to []map[string]interface{}
 	for _, option := range r.ResourceABACOptions {
 		// Convert struct to map using JSON marshaling and unmarshaling
 		optionBytes, _ := json.Marshal(option)
-		var optionMap map[string]interface{}
+		var optionMap []interface{}
 		_ = json.Unmarshal(optionBytes, &optionMap)
 		abacOptions = append(abacOptions, optionMap)
 	}
@@ -72,7 +71,7 @@ func ToResourceResponse(r *model.Resource) ResourceResponse {
 	for _, option := range r.ResourceReBACOptions {
 		// Convert struct to map using JSON marshaling and unmarshaling
 		optionBytes, _ := json.Marshal(option)
-		var optionMap map[string]interface{}
+		var optionMap []interface{}
 		_ = json.Unmarshal(optionBytes, &optionMap)
 		rebacOptions = append(rebacOptions, optionMap)
 	}

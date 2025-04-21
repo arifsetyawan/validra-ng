@@ -24,53 +24,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/actions": {
-            "get": {
-                "description": "Get a paginated list of all actions",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "actions"
-                ],
-                "summary": "List actions",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Number of items to return (default: 10)",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number of items to skip (default: 0)",
-                        "name": "offset",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of actions",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ListActionsResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
+        "/api/check-permission": {
             "post": {
-                "description": "Create a new action with the provided information",
+                "description": "Checks if a user has permission to perform an action on a resource",
                 "consumes": [
                     "application/json"
                 ],
@@ -78,29 +34,29 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "actions"
+                    "permissions"
                 ],
-                "summary": "Create a new action",
+                "summary": "Check permission",
                 "parameters": [
                     {
-                        "description": "Action information",
-                        "name": "action",
+                        "description": "Permission check request",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateActionRequest"
+                            "$ref": "#/definitions/dto.PermissionCheckRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Action created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.ActionResponse"
+                            "$ref": "#/definitions/dto.PermissionCheckResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -109,230 +65,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/actions/resource/{resourceID}": {
-            "get": {
-                "description": "Retrieve all actions associated with a specific resource",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "actions"
-                ],
-                "summary": "Get actions by resource ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Resource ID",
-                        "name": "resourceID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Actions found",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.ActionResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "No actions found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/actions/{id}": {
-            "get": {
-                "description": "Retrieve a specific action by its unique identifier",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "actions"
-                ],
-                "summary": "Get an action by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Action ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Action found",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ActionResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Action not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Update an existing action by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "actions"
-                ],
-                "summary": "Update an action",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Action ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated action information",
-                        "name": "action",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UpdateActionRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Action updated",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ActionResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Action not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete an action by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "actions"
-                ],
-                "summary": "Delete an action",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Action ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Action deleted"
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Action not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -576,8 +309,11 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "Resource deleted"
+                    "200": {
+                        "description": "Resource soft deleted",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResourceResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad request",
@@ -842,8 +578,11 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "Role deleted"
+                    "200": {
+                        "description": "Role soft deleted",
+                        "schema": {
+                            "$ref": "#/definitions/dto.RoleResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad request",
@@ -1108,8 +847,11 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "User deleted"
+                    "200": {
+                        "description": "User soft deleted",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad request",
@@ -1143,70 +885,27 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.ActionResponse": {
-            "type": "object",
-            "properties": {
-                "attributes": {
-                    "type": "object"
-                },
-                "created_at": {
-                    "type": "string",
-                    "example": "2025-04-19T12:00:00Z"
-                },
-                "description": {
-                    "type": "string",
-                    "example": "Permission to read the resource"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "123e4567-e89b-12d3-a456-426614174000"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "read"
-                },
-                "resource_id": {
-                    "type": "string",
-                    "example": "123e4567-e89b-12d3-a456-426614174000"
-                },
-                "updated_at": {
-                    "type": "string",
-                    "example": "2025-04-19T12:00:00Z"
-                }
-            }
-        },
-        "dto.CreateActionRequest": {
-            "type": "object",
-            "required": [
-                "name",
-                "resource_id"
-            ],
-            "properties": {
-                "attributes": {
-                    "type": "object"
-                },
-                "description": {
-                    "type": "string",
-                    "example": "Permission to read the resource"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "read"
-                },
-                "resource_id": {
-                    "type": "string",
-                    "example": "123e4567-e89b-12d3-a456-426614174000"
-                }
-            }
-        },
         "dto.CreateResourceRequest": {
             "type": "object",
             "required": [
                 "name"
             ],
             "properties": {
-                "attributes": {
-                    "type": "object"
+                "abac_options": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                },
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"read\"",
+                        " \"write\"]"
+                    ]
                 },
                 "description": {
                     "type": "string",
@@ -1215,6 +914,12 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Sample Resource"
+                },
+                "rebac_options": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
                 }
             }
         },
@@ -1244,21 +949,6 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "john_doe"
-                }
-            }
-        },
-        "dto.ListActionsResponse": {
-            "type": "object",
-            "properties": {
-                "actions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.ActionResponse"
-                    }
-                },
-                "total": {
-                    "type": "integer",
-                    "example": 10
                 }
             }
         },
@@ -1307,11 +997,51 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PermissionCheckRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "resource",
+                "user"
+            ],
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PermissionCheckResponse": {
+            "type": "object",
+            "properties": {
+                "context": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "grant": {
+                    "type": "boolean"
+                }
+            }
+        },
         "dto.ResourceResponse": {
             "type": "object",
             "properties": {
-                "attributes": {
-                    "type": "object"
+                "abac_options": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                },
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
                 },
                 "created_at": {
                     "type": "string",
@@ -1328,6 +1058,12 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Sample Resource"
+                },
+                "rebac_options": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
                 },
                 "updated_at": {
                     "type": "string",
@@ -1360,46 +1096,42 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UpdateActionRequest": {
-            "type": "object",
-            "required": [
-                "name",
-                "resource_id"
-            ],
-            "properties": {
-                "attributes": {
-                    "type": "object"
-                },
-                "description": {
-                    "type": "string",
-                    "example": "Permission to read the resource"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "read"
-                },
-                "resource_id": {
-                    "type": "string",
-                    "example": "123e4567-e89b-12d3-a456-426614174000"
-                }
-            }
-        },
         "dto.UpdateResourceRequest": {
             "type": "object",
             "required": [
+                "id",
                 "name"
             ],
             "properties": {
-                "attributes": {
-                    "type": "object"
+                "abac_options": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                },
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
                 },
                 "description": {
                     "type": "string",
                     "example": "This is an updated resource description"
                 },
+                "id": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
                 "name": {
                     "type": "string",
                     "example": "Updated Resource"
+                },
+                "rebac_options": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
                 }
             }
         },

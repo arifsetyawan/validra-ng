@@ -1,55 +1,28 @@
 basePath: /
 definitions:
-  dto.ActionResponse:
-    properties:
-      attributes:
-        type: object
-      created_at:
-        example: "2025-04-19T12:00:00Z"
-        type: string
-      description:
-        example: Permission to read the resource
-        type: string
-      id:
-        example: 123e4567-e89b-12d3-a456-426614174000
-        type: string
-      name:
-        example: read
-        type: string
-      resource_id:
-        example: 123e4567-e89b-12d3-a456-426614174000
-        type: string
-      updated_at:
-        example: "2025-04-19T12:00:00Z"
-        type: string
-    type: object
-  dto.CreateActionRequest:
-    properties:
-      attributes:
-        type: object
-      description:
-        example: Permission to read the resource
-        type: string
-      name:
-        example: read
-        type: string
-      resource_id:
-        example: 123e4567-e89b-12d3-a456-426614174000
-        type: string
-    required:
-    - name
-    - resource_id
-    type: object
   dto.CreateResourceRequest:
     properties:
-      attributes:
-        type: object
+      abac_options:
+        items:
+          type: object
+        type: array
+      actions:
+        example:
+        - '["read"'
+        - ' "write"]'
+        items:
+          type: string
+        type: array
       description:
         example: This is a sample resource description
         type: string
       name:
         example: Sample Resource
         type: string
+      rebac_options:
+        items:
+          type: object
+        type: array
     required:
     - name
     type: object
@@ -71,16 +44,6 @@ definitions:
         type: string
     required:
     - username
-    type: object
-  dto.ListActionsResponse:
-    properties:
-      actions:
-        items:
-          $ref: '#/definitions/dto.ActionResponse'
-        type: array
-      total:
-        example: 10
-        type: integer
     type: object
   dto.ListResourcesResponse:
     properties:
@@ -112,10 +75,37 @@ definitions:
           $ref: '#/definitions/dto.UserResponse'
         type: array
     type: object
+  dto.PermissionCheckRequest:
+    properties:
+      action:
+        type: string
+      resource:
+        type: string
+      user:
+        type: string
+    required:
+    - action
+    - resource
+    - user
+    type: object
+  dto.PermissionCheckResponse:
+    properties:
+      context:
+        additionalProperties: true
+        type: object
+      grant:
+        type: boolean
+    type: object
   dto.ResourceResponse:
     properties:
-      attributes:
-        type: object
+      abac_options:
+        items:
+          type: object
+        type: array
+      actions:
+        items:
+          type: object
+        type: array
       created_at:
         example: "2025-04-19T12:00:00Z"
         type: string
@@ -128,6 +118,10 @@ definitions:
       name:
         example: Sample Resource
         type: string
+      rebac_options:
+        items:
+          type: object
+        type: array
       updated_at:
         example: "2025-04-19T12:00:00Z"
         type: string
@@ -150,34 +144,31 @@ definitions:
         example: "2025-04-19T12:00:00Z"
         type: string
     type: object
-  dto.UpdateActionRequest:
-    properties:
-      attributes:
-        type: object
-      description:
-        example: Permission to read the resource
-        type: string
-      name:
-        example: read
-        type: string
-      resource_id:
-        example: 123e4567-e89b-12d3-a456-426614174000
-        type: string
-    required:
-    - name
-    - resource_id
-    type: object
   dto.UpdateResourceRequest:
     properties:
-      attributes:
-        type: object
+      abac_options:
+        items:
+          type: object
+        type: array
+      actions:
+        items:
+          type: object
+        type: array
       description:
         example: This is an updated resource description
+        type: string
+      id:
+        example: 123e4567-e89b-12d3-a456-426614174000
         type: string
       name:
         example: Updated Resource
         type: string
+      rebac_options:
+        items:
+          type: object
+        type: array
     required:
+    - id
     - name
     type: object
   dto.UpdateRoleRequest:
@@ -230,217 +221,40 @@ info:
   title: Validra Engine API
   version: "1.0"
 paths:
-  /api/actions:
-    get:
-      consumes:
-      - application/json
-      description: Get a paginated list of all actions
-      parameters:
-      - description: 'Number of items to return (default: 10)'
-        in: query
-        name: limit
-        type: integer
-      - description: 'Number of items to skip (default: 0)'
-        in: query
-        name: offset
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of actions
-          schema:
-            $ref: '#/definitions/dto.ListActionsResponse'
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: List actions
-      tags:
-      - actions
+  /api/check-permission:
     post:
       consumes:
       - application/json
-      description: Create a new action with the provided information
+      description: Checks if a user has permission to perform an action on a resource
       parameters:
-      - description: Action information
+      - description: Permission check request
         in: body
-        name: action
+        name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateActionRequest'
+          $ref: '#/definitions/dto.PermissionCheckRequest'
       produces:
       - application/json
       responses:
-        "201":
-          description: Action created
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/dto.ActionResponse'
+            $ref: '#/definitions/dto.PermissionCheckResponse'
         "400":
-          description: Bad request
+          description: Bad Request
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Create a new action
+      summary: Check permission
       tags:
-      - actions
-  /api/actions/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete an action by its ID
-      parameters:
-      - description: Action ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: Action deleted
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Action not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Delete an action
-      tags:
-      - actions
-    get:
-      consumes:
-      - application/json
-      description: Retrieve a specific action by its unique identifier
-      parameters:
-      - description: Action ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Action found
-          schema:
-            $ref: '#/definitions/dto.ActionResponse'
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Action not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get an action by ID
-      tags:
-      - actions
-    put:
-      consumes:
-      - application/json
-      description: Update an existing action by its ID
-      parameters:
-      - description: Action ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Updated action information
-        in: body
-        name: action
-        required: true
-        schema:
-          $ref: '#/definitions/dto.UpdateActionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Action updated
-          schema:
-            $ref: '#/definitions/dto.ActionResponse'
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Action not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Update an action
-      tags:
-      - actions
-  /api/actions/resource/{resourceID}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve all actions associated with a specific resource
-      parameters:
-      - description: Resource ID
-        in: path
-        name: resourceID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Actions found
-          schema:
-            items:
-              $ref: '#/definitions/dto.ActionResponse'
-            type: array
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: No actions found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get actions by resource ID
-      tags:
-      - actions
+      - permissions
   /api/resources:
     get:
       consumes:
@@ -518,8 +332,10 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: Resource deleted
+        "200":
+          description: Resource soft deleted
+          schema:
+            $ref: '#/definitions/dto.ResourceResponse'
         "400":
           description: Bad request
           schema:
@@ -694,8 +510,10 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: Role deleted
+        "200":
+          description: Role soft deleted
+          schema:
+            $ref: '#/definitions/dto.RoleResponse'
         "400":
           description: Bad request
           schema:
@@ -870,8 +688,10 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: User deleted
+        "200":
+          description: User soft deleted
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
         "400":
           description: Bad request
           schema:
