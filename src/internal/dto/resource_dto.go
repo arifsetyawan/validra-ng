@@ -5,15 +5,17 @@ import (
 	"time"
 
 	"github.com/arifsetyawan/validra/src/internal/model"
+	"github.com/arifsetyawan/validra/src/pkg/logger"
+	"github.com/google/uuid"
 )
 
 // CreateResourceRequest represents the request payload for creating a resource
 type CreateResourceRequest struct {
-	Name                 string                   `json:"name" validate:"required" example:"Sample Resource"`
-	Description          string                   `json:"description" example:"This is a sample resource description"`
-	Actions              []string                 `json:"actions" example:"[\"read\", \"write\"]"`
-	ResourceABACOptions  []map[string]interface{} `json:"abac_options,omitempty" swaggertype:"array,object"`
-	ResourceReBACOptions []map[string]interface{} `json:"rebac_options,omitempty" swaggertype:"array,object"`
+	Name                 string        `json:"name" validate:"required" example:"Sample Resource"`
+	Description          string        `json:"description" example:"This is a sample resource description"`
+	Actions              []string      `json:"actions" example:"[\"read\", \"write\"]"`
+	ResourceABACOptions  []interface{} `json:"abac_options,omitempty" swaggertype:"array,object"`
+	ResourceReBACOptions []interface{} `json:"rebac_options,omitempty" swaggertype:"array,object"`
 }
 
 // UpdateResourceRequest represents the request payload for updating a resource
@@ -47,6 +49,8 @@ type ListResourcesResponse struct {
 // ToResourceResponse converts a model.Resource to ResourceResponse
 func ToResourceResponse(r *model.Resource) ResourceResponse {
 
+	log := logger.NewLogger()
+
 	var actions []interface{}
 	var abacOptions []interface{}
 	var rebacOptions []interface{}
@@ -55,15 +59,19 @@ func ToResourceResponse(r *model.Resource) ResourceResponse {
 	for _, action := range r.ResourceActions {
 		// Convert struct to map using JSON marshaling and unmarshaling
 		actionBytes, _ := json.Marshal(action)
-		var actionMap []interface{}
+		var actionMap map[string]interface{}
 		_ = json.Unmarshal(actionBytes, &actionMap)
+		log.Info("actionMap %v", actionMap)
+
 		actions = append(actions, actionMap)
 	}
+
+	log.Info("actions %v", actions)
 
 	for _, option := range r.ResourceABACOptions {
 		// Convert struct to map using JSON marshaling and unmarshaling
 		optionBytes, _ := json.Marshal(option)
-		var optionMap []interface{}
+		var optionMap map[string]interface{}
 		_ = json.Unmarshal(optionBytes, &optionMap)
 		abacOptions = append(abacOptions, optionMap)
 	}
@@ -71,7 +79,7 @@ func ToResourceResponse(r *model.Resource) ResourceResponse {
 	for _, option := range r.ResourceReBACOptions {
 		// Convert struct to map using JSON marshaling and unmarshaling
 		optionBytes, _ := json.Marshal(option)
-		var optionMap []interface{}
+		var optionMap map[string]interface{}
 		_ = json.Unmarshal(optionBytes, &optionMap)
 		rebacOptions = append(rebacOptions, optionMap)
 	}
@@ -91,12 +99,15 @@ func ToResourceResponse(r *model.Resource) ResourceResponse {
 // ToResourceDomain converts a CreateResourceRequest to model.Resource
 func (r *CreateResourceRequest) ToResourceModel() *model.Resource {
 
-	// Convert actions to []model.Action
+	// Convert actions to []model.ResourceActions
 	var actions []model.ResourceActions
-	for _, action := range r.Actions {
-		var actionModel model.ResourceActions
-		jsonData, _ := json.Marshal(action)
-		json.Unmarshal(jsonData, &actionModel)
+	for _, actionName := range r.Actions {
+		actionModel := model.ResourceActions{
+			ID:        uuid.New().String(), // Generate a new UUID for each action
+			Name:      actionName,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
 		actions = append(actions, actionModel)
 	}
 
@@ -106,6 +117,10 @@ func (r *CreateResourceRequest) ToResourceModel() *model.Resource {
 		var abacOption model.ResourceABACOptions
 		jsonData, _ := json.Marshal(value)
 		json.Unmarshal(jsonData, &abacOption)
+		// Ensure each ABAC option has an ID
+		if abacOption.ID == "" {
+			abacOption.ID = uuid.New().String()
+		}
 		abacOptions = append(abacOptions, abacOption)
 	}
 
@@ -115,6 +130,10 @@ func (r *CreateResourceRequest) ToResourceModel() *model.Resource {
 		var rebacOption model.ResourceReBACOptions
 		jsonData, _ := json.Marshal(value)
 		json.Unmarshal(jsonData, &rebacOption)
+		// Ensure each ReBAC option has an ID
+		if rebacOption.ID == "" {
+			rebacOption.ID = uuid.New().String()
+		}
 		rebacOptions = append(rebacOptions, rebacOption)
 	}
 

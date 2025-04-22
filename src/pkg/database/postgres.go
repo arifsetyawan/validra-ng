@@ -8,6 +8,8 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	"github.com/arifsetyawan/validra/src/internal/model"
 )
 
 // PostgresDB encapsulates the database connection
@@ -58,47 +60,18 @@ func (p *PostgresDB) Close() error {
 func (p *PostgresDB) Migrate() error {
 	log.Println("Running database migrations...")
 
-	// Define models for migration
-	type Resource struct {
-		ID          string `gorm:"primaryKey"`
-		Name        string `gorm:"not null"`
-		Description string
-		Attributes  []byte
-		CreatedAt   time.Time
-		UpdatedAt   time.Time
-		DeletedAt   *time.Time `gorm:"index"`
-	}
-
-	type Action struct {
-		ID          string `gorm:"primaryKey"`
-		ResourceID  string `gorm:"not null;index"`
-		Name        string `gorm:"not null"`
-		Description string
-		Attributes  []byte
-		CreatedAt   time.Time
-		UpdatedAt   time.Time
-		Resource    Resource `gorm:"foreignKey:ResourceID"`
-	}
-
-	type Role struct {
-		ID          string `gorm:"primaryKey"`
-		Name        string `gorm:"not null"`
-		Description string
-		CreatedAt   time.Time
-		UpdatedAt   time.Time
-	}
-
-	type User struct {
-		ID         string `gorm:"primaryKey"`
-		Username   string `gorm:"not null;uniqueIndex"`
-		Attributes []byte
-		Email      string `gorm:"uniqueIndex"`
-		CreatedAt  time.Time
-		UpdatedAt  time.Time
-	}
-
-	// Run migrations
-	err := p.DB.AutoMigrate(&Resource{}, &Action{}, &Role{}, &User{})
+	// Run migrations using models from the model package
+	err := p.DB.AutoMigrate(
+		&model.Resource{},
+		&model.ResourceActions{},
+		&model.ResourceABACOptions{},
+		&model.ResourceReBACOptions{},
+		&model.ResourceSet{},
+		&model.Role{},
+		&model.User{},
+		&model.UserSet{},
+		&model.Permission{},
+	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}

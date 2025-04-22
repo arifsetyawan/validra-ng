@@ -42,7 +42,9 @@ func (r *ResourceRepository) Create(ctx context.Context, resource *model.Resourc
 	resource.CreatedAt = now
 	resource.UpdatedAt = now
 
-	result := r.db.DB.WithContext(ctx).Create(resource)
+	resourceModelObj := r.db.DB.WithContext(ctx).Model(&model.Resource{}).Preload("ResourceActions").Preload("ResourceABACOptions").Preload("ResourceReBACOptions")
+
+	result := resourceModelObj.Create(resource)
 	if result.Error != nil {
 		return fmt.Errorf("failed to create resource: %w", result.Error)
 	}
@@ -53,10 +55,15 @@ func (r *ResourceRepository) Create(ctx context.Context, resource *model.Resourc
 // GetByID retrieves a resource by ID
 func (r *ResourceRepository) GetByID(ctx context.Context, id string) (*model.Resource, error) {
 	var resource model.Resource
-	result := r.db.DB.WithContext(ctx).First(&resource, "id = ?", id)
+
+	resourceModelObj := r.db.DB.WithContext(ctx).Model(&model.Resource{}).Preload("ResourceActions").Preload("ResourceABACOptions").Preload("ResourceReBACOptions")
+
+	result := resourceModelObj.First(&resource, "id = ?", id)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to get resource: %w", result.Error)
 	}
+
+	fmt.Println("Resource retrieved:", resource)
 
 	return &resource, nil
 }
@@ -64,7 +71,10 @@ func (r *ResourceRepository) GetByID(ctx context.Context, id string) (*model.Res
 // List retrieves a paginated list of resources
 func (r *ResourceRepository) List(ctx context.Context, limit, offset int) (*[]model.Resource, error) {
 	var resources []model.Resource
-	result := r.db.DB.WithContext(ctx).Limit(limit).Offset(offset).Find(&resources)
+
+	resourceModelObj := r.db.DB.WithContext(ctx).Model(&model.Resource{}).Preload("ResourceActions").Preload("ResourceABACOptions").Preload("ResourceReBACOptions")
+
+	result := resourceModelObj.Limit(limit).Offset(offset).Find(&resources)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to list resources: %w", result.Error)
 	}
