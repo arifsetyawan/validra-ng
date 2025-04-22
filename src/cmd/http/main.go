@@ -58,6 +58,7 @@ func main() {
 		cfg.Database.Name,
 		cfg.Database.Port,
 		cfg.Database.SSLMode,
+		log,
 	)
 
 	if err != nil {
