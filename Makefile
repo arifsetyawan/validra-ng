@@ -1,4 +1,4 @@
-.PHONY: build run test clean deps swagger atlas-init atlas-migrate-diff atlas-migrate-status atlas-migrate-apply atlas-schema-apply atlas-schema-inspect reset-db
+.PHONY: build run test clean deps swagger atlas-init atlas-migrate-diff atlas-migrate-status atlas-migrate-apply atlas-schema-apply atlas-schema-inspect reset-db atlas-fix-checksums
 
 # Default binary output
 BINARY_NAME=validra-engine
@@ -88,6 +88,10 @@ atlas-schema-inspect:
 	@echo "Inspecting current schema..."
 	@atlas schema inspect --env dev -w migrations/schemas/schema.hcl
 
+atlas-fix-checksums:
+	@echo "Fixing migration checksums..."
+	@./scripts/fix_checksums.sh
+
 # Database management
 reset-db:
 	@echo "Resetting the database..."
@@ -111,6 +115,7 @@ help:
 	@echo "  make atlas-schema-apply - Apply schema changes"
 	@echo "  make atlas-schema-inspect - Inspect current schema"
 	@echo "  make reset-db - Reset the database"
+	@echo "  make atlas-fix-checksums - Fix checksums for migrations"
 	@echo "  make help     - Show this help message"
 
 # Default target

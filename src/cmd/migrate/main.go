@@ -17,6 +17,7 @@ import (
 func main() {
 	// Command line flags
 	checkStatus := flag.Bool("status", false, "Check migration status")
+	fixChecksums := flag.Bool("fix-checksums", false, "Fix migration checksums")
 	flag.Parse()
 
 	// Initialize logger
@@ -53,13 +54,20 @@ func main() {
 	
 	ctx := context.Background()
 
-	// Check status or apply migrations based on flag
+	// Check status, fix checksums, or apply migrations based on flags
 	if *checkStatus {
 		log.Info("Checking migration status...")
 		if err := runner.CheckMigrationStatus(ctx); err != nil {
 			log.Error("Failed to check migration status: %v", err)
 			os.Exit(1)
 		}
+	} else if *fixChecksums {
+		log.Info("Fixing migration checksums...")
+		if err := runner.HashMigrations(ctx); err != nil {
+			log.Error("Failed to fix migration checksums: %v", err)
+			os.Exit(1)
+		}
+		log.Info("Migration checksums fixed successfully")
 	} else {
 		log.Info("Applying migrations...")
 		if err := runner.MigrateUp(ctx); err != nil {

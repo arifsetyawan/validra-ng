@@ -3,14 +3,10 @@ package atlasmigrate
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
+	"os/exec"
 
-	"ariga.io/atlas/sql/migrate"
-	"ariga.io/atlas/sql/postgres"
-	"ariga.io/atlas/sql/schema"
 	"github.com/arifsetyawan/validra/src/pkg/logger"
 )
 
@@ -30,122 +26,70 @@ func NewMigrationRunner(db *sql.DB, migrationsDir string, logger *logger.Logger)
 	}
 }
 
-// MigrateUp applies all pending migrations
+// MigrateUp applies all pending migrations using the Atlas CLI
 func (m *MigrationRunner) MigrateUp(ctx context.Context) error {
 	// Ensure migrations directory exists
 	if err := os.MkdirAll(m.dir, 0755); err != nil {
 		return fmt.Errorf("failed to create migrations directory: %w", err)
 	}
 
-	// Create a postgres driver
-	driver, err := postgres.Open(m.db)
-	if err != nil {
-		return fmt.Errorf("failed to create postgres driver: %w", err)
-	}
-	defer driver.Close()
+	// Use Atlas CLI to run migrations (execute atlas migrate apply --env dev)
+	m.logger.Info("Applying migrations with Atlas CLI...")
+	cmd := exec.CommandContext(ctx, "atlas", "migrate", "apply", "--env", "dev")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	// Create a directory source for migration files
-	dir, err := migrate.NewLocalDir(m.dir)
-	if err != nil {
-		return fmt.Errorf("failed to create migration directory source: %w", err)
-	}
-
-	// Collect all migration files
-	files, err := dir.Files()
-	if err != nil {
-		return fmt.Errorf("failed to read migration files: %w", err)
-	}
-	if len(files) == 0 {
-		m.logger.Info("No migration files found")
-		return nil
-	}
-
-	// Sort migration files by version
-	migrate.SortFiles(files)
-
-	// Create a migration planner
-	ex, err := migrate.NewExecutor(driver, dir)
-	if err != nil {
-		return fmt.Errorf("failed to create migration executor: %w", err)
-	}
-
-	// Apply migrations
-	m.logger.Info("Applying migrations...")
-	if err := ex.ExecuteN(ctx, len(files)); err != nil {
-		return fmt.Errorf("failed to apply migrations: %w", err)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to run Atlas migrations: %w", err)
 	}
 
 	m.logger.Info("Migrations applied successfully")
 	return nil
 }
 
-// CheckMigrationStatus checks the status of all migrations
+// CheckMigrationStatus checks the status of all migrations using Atlas CLI
 func (m *MigrationRunner) CheckMigrationStatus(ctx context.Context) error {
-	// Create a postgres driver
-	driver, err := postgres.Open(m.db)
-	if err != nil {
-		return fmt.Errorf("failed to create postgres driver: %w", err)
-	}
-	defer driver.Close()
+	// Use Atlas CLI to check migration status (execute atlas migrate status --env dev)
+	m.logger.Info("Checking migration status with Atlas CLI...")
+	cmd := exec.CommandContext(ctx, "atlas", "migrate", "status", "--env", "dev")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	// Create a directory source for migration files
-	dir, err := migrate.NewLocalDir(m.dir)
-	if err != nil {
-		return fmt.Errorf("failed to create migration directory source: %w", err)
-	}
-
-	// Get all migration files
-	files, err := dir.Files()
-	if err != nil {
-		return fmt.Errorf("failed to read migration files: %w", err)
-	}
-
-	// If there are no migration files, there's nothing to check
-	if len(files) == 0 {
-		m.logger.Info("No migration files found")
-		return nil
-	}
-
-	// Sort migration files by version
-	migrate.SortFiles(files)
-
-	// Check migration status
-	m.logger.Info("Checking migration status...")
-	applied, err := driver.MigrationsApplied(ctx)
-	if err != nil {
-		if errors.Is(err, schema.NotExistError{Name: "atlas_schema_revisions"}) {
-			m.logger.Info("No migrations have been applied yet")
-			return nil
-		}
-		return fmt.Errorf("failed to get applied migrations: %w", err)
-	}
-
-	// Print migration status
-	for _, f := range files {
-		isApplied := false
-		for _, a := range applied {
-			if a == f.Version() {
-				isApplied = true
-				break
-			}
-		}
-
-		status := "Pending"
-		if isApplied {
-			status = "Applied"
-		}
-
-		m.logger.Info("%s: %s (%s)", f.Version(), filepath.Base(f.Name()), status)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to check migration status: %w", err)
 	}
 
 	return nil
 }
 
-// GenerateMigration creates a new migration file
+// HashMigrations rehashes migration files to fix checksum errors
+func (m *MigrationRunner) HashMigrations(ctx context.Context) error {
+	// Use Atlas CLI to rehash migrations (execute atlas migrate hash --env dev)
+	m.logger.Info("Rehashing migration files with Atlas CLI...")
+	cmd := exec.CommandContext(ctx, "atlas", "migrate", "hash", "--env", "dev")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to rehash migration files: %w", err)
+	}
+
+	m.logger.Info("Migration files rehashed successfully")
+	return nil
+}
+
+// GenerateMigration creates a new migration file using Atlas CLI
 func (m *MigrationRunner) GenerateMigration(ctx context.Context, name string) error {
-	// TODO: Implement a programmatic way to generate migrations
-	// For now, use the CLI tool via the Makefile
-	m.logger.Info("Migration generation needs to be done using the atlas CLI tool")
-	m.logger.Info("Run: make atlas-migrate-diff")
+	// Use Atlas CLI to generate a migration (execute atlas migrate diff --env dev name)
+	m.logger.Info("Generating migration with Atlas CLI...")
+	cmd := exec.CommandContext(ctx, "atlas", "migrate", "diff", "--env", "dev", name)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to generate migration: %w", err)
+	}
+
+	m.logger.Info("Migration generated successfully")
 	return nil
 } 
